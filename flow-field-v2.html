@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Flow Field · Generative Art</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ═══════════ THEMES ═══════════ */
+    :root {
+      --charcoal:    #2c3540;
+      --slate:       #6b7a88;
+      --light-gray:  #e4e8ec;
+      --mid-gray:    #c8cdd4;
+      --bg:          #eef0f3;
+      --panel-bg:    #ffffff;
+      --border:      #dde2e8;
+      --accent-soft: #f0f2f5;
+      --text:        #1a242c;
+      --text-muted:  #7a8a95;
+      --active-text: #ffffff;
+      --accent:      #2c3540;
+      --shadow:      0 2px 20px rgba(44,53,64,0.10);
+      --topbar-h:    52px;
+      --panel-w:     272px;
+    }
+    [data-theme="midnight"] {
+      --charcoal:    #c4d4e8;
+      --slate:       #7a90a8;
+      --light-gray:  #161e2c;
+      --mid-gray:    #1e2c3e;
+      --bg:          #090d14;
+      --panel-bg:    #0e1520;
+      --border:      #182030;
+      --accent-soft: #131b28;
+      --text:        #d0e4f8;
+      --text-muted:  #6a80a0;
+      --active-text: #090d14;
+      --accent:      #4a8aba;
+      --shadow:      0 2px 28px rgba(0,0,0,0.7);
+    }
+    [data-theme="neon"] {
+      --charcoal:    #00e87a;
+      --slate:       #00b860;
+      --light-gray:  #0e0e0e;
+      --mid-gray:    #1a1a1a;
+      --bg:          #060606;
+      --panel-bg:    #0a0a0a;
+      --border:      #1a1a1a;
+      --accent-soft: #001408;
+      --text:        #c0ffda;
+      --text-muted:  #2e9e58;
+      --active-text: #060606;
+      --accent:      #00e87a;
+      --shadow:      0 0 28px rgba(0,232,122,0.14);
+    }
+    [data-theme="ocean"] {
+      --charcoal:    #0a3560;
+      --slate:       #1a5888;
+      --light-gray:  #cce0f5;
+      --mid-gray:    #9cc8ec;
+      --bg:          #e0f0fc;
+      --panel-bg:    #f5faff;
+      --border:      #aacce8;
+      --accent-soft: #d2ecf8;
+      --text:        #062038;
+      --text-muted:  #2468a0;
+      --active-text: #ffffff;
+      --accent:      #0a3560;
+      --shadow:      0 2px 16px rgba(10,53,96,0.14);
+    }
+    [data-theme="desert"] {
+      --charcoal:    #763a1c;
+      --slate:       #9a5228;
+      --light-gray:  #f2e0cc;
+      --mid-gray:    #e4ccac;
+      --bg:          #fdf2e4;
+      --panel-bg:    #fffaf2;
+      --border:      #e4ccac;
+      --accent-soft: #fceedd;
+      --text:        #38180a;
+      --text-muted:  #9a5828;
+      --active-text: #ffffff;
+      --accent:      #763a1c;
+      --shadow:      0 2px 16px rgba(118,58,28,0.12);
+    }
+
+    html, body {
+      height: 100%; min-height: 100dvh;
+      font-family: 'Syne', system-ui, sans-serif;
+      font-size: 13px;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* ═══════════ TOPBAR ═══════════ */
+    #topbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: var(--topbar-h);
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 14px; gap: 0;
+      z-index: 100;
+      box-shadow: 0 1px 0 var(--border);
+    }
+    #title-block {
+      display: flex; flex-direction: column;
+      line-height: 1.15; margin-right: 18px; flex-shrink: 0;
+    }
+    #app-title {
+      font-size: 16px; font-weight: 800;
+      letter-spacing: -0.5px; color: var(--charcoal);
+    }
+    #app-sub {
+      font-size: 9px; color: var(--text-muted);
+      letter-spacing: 0.12em; text-transform: uppercase;
+      font-weight: 500;
+    }
+    #mode-tabs { display: flex; gap: 3px; flex: 1; overflow: hidden; }
+    .mode-tab {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 12px;
+      border: 1px solid var(--border); background: transparent;
+      border-radius: 4px; font-size: 11px; font-weight: 600;
+      font-family: 'Syne', sans-serif;
+      color: var(--slate); cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .mode-tab:hover  { background: var(--accent-soft); color: var(--charcoal); }
+    .mode-tab.active { background: var(--charcoal); border-color: var(--charcoal); color: var(--active-text); }
+    .mode-icon { font-size: 13px; line-height: 1; }
+
+    #topbar-actions { display: flex; align-items: center; gap: 5px; margin-left: 12px; flex-shrink: 0; }
+    .action-btn {
+      padding: 5px 11px;
+      border: 1px solid var(--border); background: transparent;
+      border-radius: 4px; font-size: 11px; font-weight: 600;
+      font-family: 'Syne', sans-serif;
+      color: var(--slate); cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .action-btn:hover  { background: var(--accent-soft); color: var(--charcoal); }
+    .action-btn.active { background: var(--charcoal); border-color: var(--charcoal); color: var(--active-text); }
+    #btn-sound.active  { background: #1e7a4a; border-color: #1e7a4a; color: #fff; }
+
+    #theme-bar {
+      display: flex; align-items: center; gap: 6px;
+      margin-left: 12px; padding-left: 12px;
+      border-left: 1px solid var(--border); flex-shrink: 0;
+    }
+    #theme-bar-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+    .theme-dot {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid transparent; cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s; flex-shrink: 0;
+    }
+    .theme-dot:hover  { transform: scale(1.3); }
+    .theme-dot.active { border-color: var(--charcoal); transform: scale(1.1); }
+
+    #fps-display {
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+      color: var(--text-muted); min-width: 42px; text-align: right; margin-left: 10px;
+    }
+
+    /* ═══════════ LAYOUT ═══════════ */
+    #layout { display: flex; padding-top: var(--topbar-h); height: 100vh; overflow: hidden; }
+    #canvas-wrap {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      height: calc(100vh - var(--topbar-h)); overflow: hidden; background: var(--bg);
+    }
+    #canvas-wrap canvas { display: block; box-shadow: var(--shadow); border-radius: 3px; max-width: 100%; max-height: 100%; }
+    #canvas-wrap.att-mode { cursor: crosshair; }
+
+    /* ═══════════ PANEL ═══════════ */
+    #control-panel {
+      width: var(--panel-w); flex-shrink: 0;
+      height: calc(100vh - var(--topbar-h));
+      overflow-y: auto; background: var(--panel-bg);
+      border-left: 1px solid var(--border);
+      padding: 0 0 40px;
+      scrollbar-width: thin; scrollbar-color: var(--mid-gray) transparent;
+    }
+    #control-panel::-webkit-scrollbar { width: 3px; }
+    #control-panel::-webkit-scrollbar-thumb { background: var(--mid-gray); border-radius: 2px; }
+    /* Mobile-only handle */
+    #sheet-handle { display: none; }
+
+    .ctrl-section { border-bottom: 1px solid var(--light-gray); }
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 16px 11px; cursor: pointer; user-select: none;
+      font-size: 9.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-muted); transition: color 0.15s;
+    }
+    .section-header:hover { color: var(--charcoal); }
+    .sec-num { color: var(--mid-gray); margin-right: 5px; font-family: 'JetBrains Mono', monospace; font-size: 9px; }
+    .chevron { font-size: 10px; transition: transform 0.2s; color: var(--mid-gray); }
+    .ctrl-section.collapsed .chevron      { transform: rotate(-90deg); }
+    .ctrl-section.collapsed .section-body { display: none; }
+    .section-body { padding: 6px 16px 14px; display: flex; flex-direction: column; gap: 11px; }
+
+    .ctrl-row { display: flex; flex-direction: column; gap: 5px; }
+    .ctrl-row label {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 600; color: var(--charcoal); letter-spacing: 0.01em;
+    }
+
+    /* sliders with fill track */
+    .slider-wrap { display: flex; align-items: center; gap: 8px; }
+    input[type="range"] {
+      flex: 1; height: 3px; -webkit-appearance: none; appearance: none;
+      border-radius: 2px; outline: none; cursor: pointer;
+      background: linear-gradient(to right, var(--accent) var(--fill,30%), var(--light-gray) var(--fill,30%));
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%;
+      background: var(--charcoal); border: 2px solid var(--panel-bg);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.22); cursor: pointer; transition: transform 0.1s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.25); }
+    input[type="range"]::-moz-range-thumb {
+      width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--panel-bg);
+      background: var(--charcoal); cursor: pointer;
+    }
+
+    /* steppers */
+    .stepper-wrap { display: flex; align-items: center; gap: 6px; }
+    .step-btn {
+      width: 24px; height: 24px;
+      border: 1px solid var(--border); background: var(--accent-soft);
+      border-radius: 4px; font-size: 14px; font-weight: 500;
+      color: var(--charcoal); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.12s; flex-shrink: 0;
+    }
+    .step-btn:hover { background: var(--charcoal); color: var(--active-text); border-color: var(--charcoal); }
+
+    .val-badge {
+      font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+      font-weight: 500; color: var(--slate); min-width: 38px; text-align: right;
+    }
+
+    /* buttons */
+    .full-btn {
+      width: 100%; padding: 8px 12px; background: var(--charcoal);
+      color: var(--active-text); border: none; border-radius: 5px;
+      font-size: 11.5px; font-weight: 700; font-family: 'Syne', sans-serif;
+      cursor: pointer; transition: opacity 0.15s, transform 0.1s; letter-spacing: 0.02em;
+    }
+    .full-btn:hover  { opacity: 0.82; }
+    .full-btn:active { transform: scale(0.98); }
+    .full-btn.sec {
+      background: var(--accent-soft); color: var(--charcoal);
+      border: 1px solid var(--border);
+    }
+    .full-btn.sec:hover { background: var(--charcoal); color: var(--active-text); }
+    .full-btn.danger { background: #c0392b; }
+    .full-btn.success { background: #1a6a3a; }
+
+    /* button groups */
+    .btn-group { display: flex; flex-wrap: wrap; gap: 3px; }
+    .grp-btn {
+      padding: 4px 9px;
+      border: 1px solid var(--border); background: transparent;
+      border-radius: 3px; font-size: 10px; font-weight: 700;
+      font-family: 'Syne', sans-serif;
+      color: var(--slate); cursor: pointer; transition: all 0.12s;
+    }
+    .grp-btn:hover  { background: var(--accent-soft); color: var(--charcoal); }
+    .grp-btn.active { background: var(--charcoal); color: var(--active-text); border-color: var(--charcoal); }
+
+    /* color pickers */
+    .color-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    input[type="color"] {
+      width: 32px; height: 26px; border: 1px solid var(--border); border-radius: 4px;
+      background: none; cursor: pointer; padding: 2px; flex-shrink: 0;
+    }
+
+    /* toggles */
+    .toggle-wrap { display: flex; align-items: center; gap: 8px; }
+    .toggle {
+      width: 34px; height: 19px; background: var(--mid-gray);
+      border-radius: 10px; position: relative; cursor: pointer;
+      transition: background 0.2s; border: none; flex-shrink: 0;
+    }
+    .toggle::after {
+      content: ''; position: absolute;
+      width: 13px; height: 13px; background: white; border-radius: 50%;
+      top: 3px; left: 3px; transition: left 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+    .toggle.on { background: var(--charcoal); }
+    .toggle.on::after { left: 18px; }
+    .toggle-label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+
+    /* export grid */
+    .exp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    .exp-btn {
+      padding: 7px 8px; background: var(--accent-soft);
+      border: 1px solid var(--border); border-radius: 4px;
+      font-size: 10.5px; font-weight: 700; font-family: 'Syne', sans-serif;
+      color: var(--charcoal); cursor: pointer; transition: all 0.12s; text-align: center;
+    }
+    .exp-btn:hover { background: var(--charcoal); color: var(--active-text); border-color: var(--charcoal); }
+    .exp-btn.rec-active { background: #c0392b; color: #fff; border-color: #c0392b; }
+    .exp-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); padding-top: 4px; }
+
+    /* recording badge */
+    #rec-badge {
+      position: fixed; top: 62px; left: 50%; transform: translateX(-50%);
+      background: #c0392b; color: white;
+      padding: 6px 16px 6px 12px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; font-family: 'Syne', sans-serif;
+      display: none; align-items: center; gap: 8px;
+      z-index: 300; box-shadow: 0 4px 20px rgba(192,57,43,0.4);
+      pointer-events: none;
+    }
+    #rec-badge.show { display: flex; }
+    .rec-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: white;
+      animation: recpulse 1s ease-in-out infinite;
+    }
+    @keyframes recpulse { 0%,100% { opacity:1 } 50% { opacity:0.3 } }
+
+    /* tooltip */
+    #tt {
+      position: fixed; z-index: 9999;
+      background: var(--charcoal); color: var(--active-text);
+      padding: 7px 10px; border-radius: 5px;
+      font-size: 11px; font-family: 'Syne', system-ui, sans-serif; font-weight: 400;
+      line-height: 1.5; width: 190px;
+      display: none; pointer-events: none;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+    }
+    .info {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 13px; height: 13px; border-radius: 50%;
+      background: var(--mid-gray); color: var(--slate);
+      font-size: 8px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+      cursor: help; flex-shrink: 0; transition: background 0.12s;
+    }
+    .info:hover { background: var(--charcoal); color: var(--active-text); }
+
+    /* attractor hint */
+    #att-hint {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      background: var(--charcoal); color: var(--active-text);
+      padding: 6px 18px; border-radius: 20px; font-size: 11px; font-weight: 600;
+      display: none; pointer-events: none; z-index: 200;
+      font-family: 'Syne', sans-serif; letter-spacing: 0.02em;
+    }
+
+    /* chord info strip */
+    #chord-strip {
+      display: none; position: fixed; bottom: 12px; right: 12px;
+      background: var(--panel-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 5px 10px;
+      font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted);
+      z-index: 200; pointer-events: none;
+    }
+    #chord-strip.show { display: block; }
+
+    /* toast */
+    #toast-wrap {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      z-index: 500; pointer-events: none;
+    }
+    .toast {
+      background: var(--charcoal); color: var(--active-text);
+      padding: 8px 18px; border-radius: 8px;
+      font-size: 12px; font-weight: 600; font-family: 'Syne', sans-serif;
+      opacity: 0; transform: translateY(12px); transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.28);
+    }
+    .toast.visible { opacity: 1; transform: translateY(0); }
+
+    /* ═══════════ MOBILE ═══════════ */
+    @media (max-width: 767px) {
+      :root { --topbar-h: 48px; --panel-w: 100%; }
+
+      #topbar { padding: 0 10px; gap: 6px; }
+      #title-block { margin-right: 0; }
+      #app-sub { display: none; }
+      #mode-tabs { display: none; }
+      #theme-bar { display: none; }
+      #fps-display { display: none; }
+
+      #layout { display: block; padding-top: var(--topbar-h); }
+      #canvas-wrap {
+        width: 100%;
+        height: calc(100dvh - var(--topbar-h));
+        display: block; overflow: hidden;
+      }
+      #canvas-wrap canvas {
+        width: 100% !important; height: 100% !important;
+        object-fit: contain; border-radius: 0; box-shadow: none;
+      }
+
+      /* Panel becomes bottom sheet */
+      #control-panel {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        width: 100%;
+        height: 85dvh;
+        max-height: 85dvh;
+        border-radius: 18px 18px 0 0;
+        border-left: none;
+        border-top: 1px solid var(--border);
+        box-shadow: 0 -6px 32px rgba(0,0,0,0.16);
+        transform: translateY(calc(100% - 52px));
+        transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+        z-index: 300;
+        padding-top: 0;
+      }
+      #control-panel.open { transform: translateY(0); }
+
+      #sheet-handle {
+        display: flex; flex-direction: column; align-items: center;
+        padding: 10px 16px 8px; cursor: pointer; user-select: none; flex-shrink: 0;
+        gap: 6px;
+      }
+      .sheet-drag-bar {
+        width: 36px; height: 4px; background: var(--mid-gray); border-radius: 2px;
+      }
+      .sheet-peek {
+        display: flex; align-items: center; justify-content: space-between;
+        width: 100%;
+        font-size: 11px; font-weight: 700; color: var(--charcoal); letter-spacing: 0.03em;
+      }
+      #sheet-chord-label {
+        font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted);
+      }
+      /* Mobile mode tabs inside sheet */
+      #mobile-mode-row {
+        display: flex; gap: 3px; padding: 0 12px 10px;
+        overflow-x: auto; -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      #mobile-mode-row::-webkit-scrollbar { display: none; }
+      #mobile-theme-row {
+        display: flex; gap: 6px; padding: 0 12px 10px; align-items: center;
+        border-bottom: 1px solid var(--light-gray); margin-bottom: 4px;
+      }
+      #chord-strip { display: none !important; }
+    }
+    @media (min-width: 768px) {
+      #mobile-mode-row, #mobile-theme-row { display: none; }
+    }
+  </style>
+</head>
+<body data-theme="minimal">
+
+<div id="tt"></div>
+<div id="att-hint">Click canvas to place attractor · Shift+click to remove</div>
+<div id="rec-badge"><span class="rec-dot"></span><span id="rec-timer">0s</span></div>
+<div id="chord-strip"><span id="chord-name">—</span></div>
+<div id="toast-wrap"></div>
+
+<!-- TOP BAR -->
+<header id="topbar">
+  <div id="title-block">
+    <span id="app-title">Flow Field</span>
+    <span id="app-sub">generative art</span>
+  </div>
+  <nav id="mode-tabs">
+    <button class="mode-tab active" data-mode="0"><span class="mode-icon">⟿</span> Smooth</button>
+    <button class="mode-tab"        data-mode="1"><span class="mode-icon">〜</span> Turbulent</button>
+    <button class="mode-tab"        data-mode="2"><span class="mode-icon">◎</span> Evolving</button>
+    <button class="mode-tab"        data-mode="3"><span class="mode-icon">✦</span> Chaotic</button>
+    <button class="mode-tab"        data-mode="4"><span class="mode-icon">∿</span> Fluid</button>
+  </nav>
+  <div id="topbar-actions">
+    <button id="btn-pause"     class="action-btn">⏸ Pause</button>
+    <button id="btn-clear"     class="action-btn">⟳ Clear</button>
+    <button id="btn-randomize" class="action-btn">⚂ Seed</button>
+    <button id="btn-sound"     class="action-btn">♪ Sound</button>
+    <span id="fps-display">-- fps</span>
+  </div>
+  <div id="theme-bar">
+    <span id="theme-bar-label">Theme</span>
+    <div class="theme-dot active" data-theme="minimal"  style="background:#2c3540" title="Minimal"></div>
+    <div class="theme-dot"        data-theme="midnight" style="background:#0e1520;border:1px solid #2a3a4a" title="Midnight"></div>
+    <div class="theme-dot"        data-theme="neon"     style="background:linear-gradient(135deg,#0a0a0a 50%,#00e87a 50%)" title="Neon"></div>
+    <div class="theme-dot"        data-theme="ocean"    style="background:#0a3560" title="Ocean"></div>
+    <div class="theme-dot"        data-theme="desert"   style="background:#763a1c" title="Desert"></div>
+  </div>
+</header>
+
+<!-- LAYOUT -->
+<div id="layout">
+  <main id="canvas-wrap"><!-- p5 injected --></main>
+
+  <aside id="control-panel">
+    <!-- Mobile handle -->
+    <div id="sheet-handle">
+      <div class="sheet-drag-bar"></div>
+      <div class="sheet-peek">
+        <span>Controls</span>
+        <span id="sheet-chord-label"></span>
+      </div>
+    </div>
+
+    <!-- Mobile-only mode & theme rows -->
+    <div id="mobile-mode-row"></div>
+    <div id="mobile-theme-row"></div>
+
+    <!-- 01 Canvas -->
+    <section class="ctrl-section">
+      <div class="section-header">
+        <span><span class="sec-num">01</span>Canvas</span><span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <div class="ctrl-row">
+          <label>Width</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-width" min="400" max="2000" step="50" value="800">
+            <span class="val-badge" id="lbl-width">800</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Height</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-height" min="300" max="1500" step="50" value="600">
+            <span class="val-badge" id="lbl-height">600</span>
+          </div>
+        </div>
+        <button id="btn-resize" class="full-btn">Apply Resize</button>
+      </div>
+    </section>
+
+    <!-- 02 Color -->
+    <section class="ctrl-section">
+      <div class="section-header">
+        <span><span class="sec-num">02</span>Color</span><span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <div class="ctrl-row">
+          <label>Background</label>
+          <div class="color-row">
+            <input type="color" id="pick-bg" value="#ffffff">
+            <button id="btn-invert" class="grp-btn">⇄ Invert</button>
+          </div>
+        </div>
+        <div class="ctrl-row" id="row-line-color">
+          <label>Line Color</label>
+          <input type="color" id="pick-line" value="#0a0a0a">
+        </div>
+        <div class="ctrl-row">
+          <label>Color Mode <span class="info" data-tip="Solid: fixed color. Velocity: speed→hue. Position: X→hue. Rainbow: time-cycling. Depth: angle→hue.">?</span></label>
+          <div class="btn-group" id="color-mode-btns">
+            <button class="grp-btn active" data-cmode="0">Solid</button>
+            <button class="grp-btn"        data-cmode="1">Velocity</button>
+            <button class="grp-btn"        data-cmode="2">Position</button>
+            <button class="grp-btn"        data-cmode="3">Rainbow</button>
+            <button class="grp-btn"        data-cmode="4">Depth</button>
+          </div>
+        </div>
+        <div class="ctrl-row" id="row-sat" style="display:none">
+          <label>Saturation</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-sat" min="0.1" max="1" step="0.05" value="0.8">
+            <span class="val-badge" id="lbl-sat">0.80</span>
+          </div>
+        </div>
+        <div class="ctrl-row" id="row-lit" style="display:none">
+          <label>Lightness</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-lit" min="0.1" max="0.9" step="0.05" value="0.5">
+            <span class="val-badge" id="lbl-lit">0.50</span>
+          </div>
+        </div>
+        <div class="ctrl-row" id="row-hue-shift" style="display:none">
+          <label>Hue Shift</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-hue-shift" min="0" max="359" step="1" value="0">
+            <span class="val-badge" id="lbl-hue-shift">0°</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 Flow Field -->
+    <section class="ctrl-section">
+      <div class="section-header">
+        <span><span class="sec-num">03</span>Flow Field</span><span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <div class="ctrl-row">
+          <label>Zoom <span class="info" data-tip="Noise zoom. Lower = broad smooth curves. Higher = tight complex swirls.">?</span></label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-inc" min="0.005" max="0.25" step="0.005" value="0.03">
+            <span class="val-badge" id="lbl-inc">0.030</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Cell Size</label>
+          <div class="stepper-wrap">
+            <button class="step-btn" data-target="scl" data-dir="-1">−</button>
+            <span class="val-badge" id="lbl-scl">5</span>
+            <button class="step-btn" data-target="scl" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Force</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-noise" min="0" max="1.5" step="0.05" value="0.25">
+            <span class="val-badge" id="lbl-noise">0.25</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Octaves</label>
+          <div class="stepper-wrap">
+            <button class="step-btn" data-target="octaves" data-dir="-1">−</button>
+            <span class="val-badge" id="lbl-octaves">4</span>
+            <button class="step-btn" data-target="octaves" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Curl Noise <span class="info" data-tip="Applies curl operator for divergence-free vortex-like flow. Fluid mode uses this automatically.">?</span></label>
+          <div class="toggle-wrap">
+            <button class="toggle" id="tog-curl"></button>
+            <span class="toggle-label" id="lbl-curl">Off</span>
+          </div>
+        </div>
+        <div class="ctrl-row" id="row-zoff" style="display:none">
+          <label>Z Depth</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-zoff" min="0" max="2" step="0.01" value="0.5">
+            <span class="val-badge" id="lbl-zoff">0.50</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 Lines -->
+    <section class="ctrl-section">
+      <div class="section-header">
+        <span><span class="sec-num">04</span>Lines</span><span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <div class="ctrl-row">
+          <label>Opacity</label>
+          <div class="stepper-wrap">
+            <button class="step-btn" data-target="transparency" data-dir="-1">−</button>
+            <span class="val-badge" id="lbl-transparency">12</span>
+            <button class="step-btn" data-target="transparency" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Weight</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-sw" min="0.2" max="5" step="0.1" value="0.6">
+            <span class="val-badge" id="lbl-sw">0.6</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Fade Trail</label>
+          <div class="toggle-wrap">
+            <button class="toggle" id="tog-fade"></button>
+            <span class="toggle-label" id="lbl-fade-state">Off</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Fade Speed</label>
+          <div class="stepper-wrap">
+            <button class="step-btn" data-target="fadeAlpha" data-dir="-1">−</button>
+            <span class="val-badge" id="lbl-fadeAlpha">8</span>
+            <button class="step-btn" data-target="fadeAlpha" data-dir="1">+</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 Particles -->
+    <section class="ctrl-section">
+      <div class="section-header">
+        <span><span class="sec-num">05</span>Particles</span><span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <div class="ctrl-row">
+          <label>Count</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-particles" min="50" max="2000" step="10" value="300">
+            <span class="val-badge" id="lbl-particles">300</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Max Speed</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-speed" min="0.5" max="8" step="0.5" value="2">
+            <span class="val-badge" id="lbl-speed">2.0</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Lifespan</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-life" min="30" max="1200" step="10" value="350">
+            <span class="val-badge" id="lbl-life">350</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 Symmetry -->
+    <section class="ctrl-section">
+      <div class="section-header">
+        <span><span class="sec-num">06</span>Symmetry</span><span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <div class="ctrl-row">
+          <div class="btn-group" id="sym-btns">
+            <button class="grp-btn active" data-smode="0">None</button>
+            <button class="grp-btn"        data-smode="1">⇔ X</button>
+            <button class="grp-btn"        data-smode="2">⇕ Y</button>
+            <button class="grp-btn"        data-smode="3">4-fold</button>
+            <button class="grp-btn"        data-smode="4">✦ 6</button>
+            <button class="grp-btn"        data-smode="5">✦ 8</button>
+            <button class="grp-btn"        data-smode="6">✦ 12</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 Attractors -->
+    <section class="ctrl-section">
+      <div class="section-header">
+        <span><span class="sec-num">07</span>Attractors</span><span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <div class="ctrl-row">
+          <label>Place Mode <span class="info" data-tip="Tap canvas to plant gravity wells. Shift+click removes nearest. On mobile: tap to add.">?</span></label>
+          <div class="toggle-wrap">
+            <button class="toggle" id="tog-att"></button>
+            <span class="toggle-label" id="lbl-att-state">Off</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Strength</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-att-str" min="-3" max="3" step="0.1" value="1">
+            <span class="val-badge" id="lbl-att-str">1.0</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Radius</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-att-rad" min="30" max="500" step="10" value="200">
+            <span class="val-badge" id="lbl-att-rad">200</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Active <span class="val-badge" id="lbl-att-count">0</span></label>
+        </div>
+        <button id="btn-clear-att" class="full-btn sec">Clear Attractors</button>
+      </div>
+    </section>
+
+    <!-- 08 Sound -->
+    <section class="ctrl-section">
+      <div class="section-header">
+        <span><span class="sec-num">08</span>Sound</span><span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <div class="ctrl-row">
+          <label>Enable <span class="info" data-tip="Harmonic chord-based ambient music driven by the flow field. Each theme has its own progression, scale and timbre.">?</span></label>
+          <div class="toggle-wrap">
+            <button class="toggle" id="tog-sound"></button>
+            <span class="toggle-label" id="lbl-sound-state">Off</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Volume</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-volume" min="0" max="1" step="0.05" value="0.5">
+            <span class="val-badge" id="lbl-volume">0.50</span>
+          </div>
+        </div>
+        <div id="sound-palette" style="display:none;padding-top:2px">
+          <div style="font-size:10px;color:var(--text-muted);line-height:1.7">
+            <div>Scale: <span id="lbl-sound-scale" style="font-weight:600;color:var(--charcoal)">—</span></div>
+            <div>Chord: <span id="lbl-sound-chord" style="font-family:'JetBrains Mono',monospace;color:var(--charcoal)">—</span></div>
+            <div>Timbre: <span id="lbl-sound-timbre" style="color:var(--charcoal)">—</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 Export -->
+    <section class="ctrl-section">
+      <div class="section-header">
+        <span><span class="sec-num">09</span>Export</span><span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <div class="exp-label">Image</div>
+        <div class="exp-grid">
+          <button id="btn-export"    class="exp-btn">PNG 1×</button>
+          <button id="btn-export-hi" class="exp-btn">PNG 2×</button>
+        </div>
+        <div class="exp-label" style="margin-top:6px">Video</div>
+        <div class="ctrl-row">
+          <label style="font-size:10px;font-weight:500;color:var(--text-muted)">Duration</label>
+          <div class="btn-group" id="rec-dur-btns">
+            <button class="grp-btn active" data-dur="10">10s</button>
+            <button class="grp-btn" data-dur="30">30s</button>
+            <button class="grp-btn" data-dur="60">60s</button>
+          </div>
+        </div>
+        <button id="btn-record" class="full-btn sec">⏺ Record WebM</button>
+        <div class="exp-label" style="margin-top:6px">Wallpaper</div>
+        <div class="exp-grid">
+          <button class="wp-btn exp-btn" data-w="1920" data-h="1080">Full HD</button>
+          <button class="wp-btn exp-btn" data-w="2560" data-h="1440">2K</button>
+          <button class="wp-btn exp-btn" data-w="3840" data-h="2160">4K UHD</button>
+          <button class="wp-btn exp-btn" data-w="1080" data-h="1920">Mobile</button>
+        </div>
+        <div style="font-size:9.5px;color:var(--text-muted);line-height:1.5;padding-top:3px">
+          Wallpaper: resizes canvas, renders 3s, saves, then restores.
+        </div>
+      </div>
+    </section>
+
+  </aside>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  GLOBALS
+// ═══════════════════════════════════════════════════════
+let inc            = 0.03;
+let scl            = 5;
+let zoff           = 0.5;
+let zoffTime       = 0;
+let noiseStrength  = 0.25;
+let noiseZ         = 0;
+let noiseOctaves   = 4;
+let curlMode       = false;
+
+let cols, rows, flowField = [];
+let particles     = [];
+let ParticleCount = 300;
+let lineTransparency = 12;
+let currentMode   = 0;
+let canvasWidth   = 800;
+let canvasHeight  = 600;
+
+// Color
+let bgR = 255, bgG = 255, bgB = 255;
+let lineR = 10, lineG = 10, lineB = 10;
+let colorMode  = 0;
+let saturation = 0.8;
+let liteness   = 0.5;
+let hueShift   = 0;
+
+// Lines
+let strokeWeightVal = 0.6;
+let fadeMode        = false;
+let fadeAlphaVal    = 8;
+
+// Particles
+let maxSpeedVal  = 2.0;
+let lifespanBase = 350;
+
+// Symmetry
+let symmetryMode = 0;
+
+// Attractors
+let attractorMode  = false;
+let attractorStr   = 1.0;
+let attractorRad   = 200;
+let attractors     = [];
+
+// State
+let paused    = false;
+let globalHue = 0;
+
+// Chord tracking
+let chordIndex = 0;
+let chordFrame = 0;
+
+// ═══════════════════════════════════════════════════════
+//  COLOR UTILS
+// ═══════════════════════════════════════════════════════
+function hslToRgb(h, s, l) {
+  h = ((h % 360) + 360) % 360;
+  let c = (1 - Math.abs(2 * l - 1)) * s;
+  let x = c * (1 - Math.abs((h / 60) % 2 - 1));
+  let m = l - c / 2, r, g, b;
+  if      (h < 60)  { r=c; g=x; b=0; }
+  else if (h < 120) { r=x; g=c; b=0; }
+  else if (h < 180) { r=0; g=c; b=x; }
+  else if (h < 240) { r=0; g=x; b=c; }
+  else if (h < 300) { r=x; g=0; b=c; }
+  else              { r=c; g=0; b=x; }
+  return [(r+m)*255, (g+m)*255, (b+m)*255];
+}
+function hexToRgb(h) {
+  return { r: parseInt(h.slice(1,3),16), g: parseInt(h.slice(3,5),16), b: parseInt(h.slice(5,7),16) };
+}
+function rgbToHex(r, g, b) {
+  return '#' + [r,g,b].map(v => Math.round(v).toString(16).padStart(2,'0')).join('');
+}
+function getStrokeColor(p, alpha) {
+  switch (colorMode) {
+    case 0: return [lineR, lineG, lineB, alpha];
+    case 1: { let h = hueShift + map(p.vel.mag(), 0, maxSpeedVal, 220, 0); let [r,g,b] = hslToRgb(h, saturation, liteness); return [r,g,b,alpha]; }
+    case 2: { let h = hueShift + map(p.pos.x, 0, width, 0, 360); let [r,g,b] = hslToRgb(h, saturation, liteness); return [r,g,b,alpha]; }
+    case 3: { let h = hueShift + globalHue + p.pos.x * 0.15; let [r,g,b] = hslToRgb(h, saturation, liteness); return [r,g,b,alpha]; }
+    case 4: { let h = hueShift + map(Math.atan2(p.vel.y, p.vel.x), -Math.PI, Math.PI, 0, 360); let [r,g,b] = hslToRgb(h, saturation, liteness); return [r,g,b,alpha]; }
+    default: return [lineR, lineG, lineB, alpha];
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  CURL NOISE — divergence-free vortex flow
+// ═══════════════════════════════════════════════════════
+function curlVector(xn, yn, zn) {
+  const e = 0.08;
+  const n1 = noise(xn,     yn + e, zn);
+  const n2 = noise(xn,     yn - e, zn);
+  const n3 = noise(xn + e, yn,     zn);
+  const n4 = noise(xn - e, yn,     zn);
+  const dNdy = (n1 - n2) / (2 * e);
+  const dNdx = (n3 - n4) / (2 * e);
+  return createVector(dNdy * noiseStrength * 3.5, -dNdx * noiseStrength * 3.5);
+}
+
+// ═══════════════════════════════════════════════════════
+//  PARTICLE
+// ═══════════════════════════════════════════════════════
+function Particle() {
+  this.pos     = createVector(random(width), random(height));
+  this.vel     = createVector(0, 0);
+  this.acc     = createVector(0, 0);
+  this.prevPos = this.pos.copy();
+  this.life    = floor(random(lifespanBase * 0.6, lifespanBase * 1.4));
+
+  this.follow = function(vectors) {
+    let xi = constrain(floor(this.pos.x / scl), 0, cols - 1);
+    let yi = constrain(floor(this.pos.y / scl), 0, rows - 1);
+    let f  = vectors[xi + yi * cols];
+    if (f) {
+      this.acc.add(f);
+      if (currentMode === 1 || currentMode === 3)
+        this.acc.add(p5.Vector.random2D().mult(0.08));
+    }
+    for (let a of attractors) {
+      let dx = a.x - this.pos.x, dy = a.y - this.pos.y;
+      let d  = Math.sqrt(dx*dx + dy*dy);
+      if (d > 5 && d < a.rad) {
+        let falloff = 1 - (d / a.rad);
+        this.acc.add(createVector(dx, dy).normalize().mult(a.str * falloff * 0.8));
+      }
+    }
+  };
+  this.update = function() {
+    this.vel.add(this.acc);
+    this.vel.limit(maxSpeedVal);
+    if (this.vel.mag() < 0.5) this.vel.setMag(1.0);
+    this.pos.add(this.vel);
+    this.acc.mult(0);
+    this.life--;
+  };
+  this.show = function() {
+    let alpha = lineTransparency;
+    if (this.life < 60) alpha *= (this.life / 60);
+    let [r, g, b, a] = getStrokeColor(this, alpha);
+    stroke(r, g, b, a);
+    strokeWeight(strokeWeightVal);
+    noFill();
+    let px = this.pos.x, py = this.pos.y;
+    let qx = this.prevPos.x, qy = this.prevPos.y;
+    let cx = width / 2, cy = height / 2;
+    line(px, py, qx, qy);
+    if (symmetryMode === 1 || symmetryMode === 3) line(width-px, py, width-qx, qy);
+    if (symmetryMode === 2 || symmetryMode === 3) line(px, height-py, qx, height-qy);
+    if (symmetryMode === 3) line(width-px, height-py, width-qx, height-qy);
+    if (symmetryMode >= 4) {
+      let n = symmetryMode === 4 ? 6 : symmetryMode === 5 ? 8 : 12;
+      for (let i = 0; i < n; i++) {
+        let ang = (TWO_PI / n) * i;
+        let co = Math.cos(ang), si = Math.sin(ang);
+        let rx1 = cx + (px-cx)*co - (py-cy)*si, ry1 = cy + (px-cx)*si + (py-cy)*co;
+        let rx2 = cx + (qx-cx)*co - (qy-cy)*si, ry2 = cy + (qx-cx)*si + (qy-cy)*co;
+        line(rx1, ry1, rx2, ry2);
+      }
+    }
+    this.updatePrev();
+  };
+  this.updatePrev = function() { this.prevPos.set(this.pos.x, this.pos.y); };
+  this.reset = function() {
+    this.pos.set(random(width), random(height));
+    this.vel.set(0, 0); this.acc.set(0, 0);
+    this.life = floor(random(lifespanBase * 0.6, lifespanBase * 1.4));
+    this.updatePrev();
+  };
+  this.edges = function() {
+    if (this.life <= 0 || this.pos.x > width || this.pos.x < 0 ||
+        this.pos.y > height || this.pos.y < 0) this.reset();
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+//  P5 SETUP / DRAW
+// ═══════════════════════════════════════════════════════
+function setup() {
+  pixelDensity(1);
+  noiseDetail(noiseOctaves, 0.5);
+  let cnv = createCanvas(canvasWidth, canvasHeight);
+  cnv.parent('canvas-wrap');
+  noiseZ = random(1000);
+  initGrid();
+  for (let i = 0; i < ParticleCount; i++) particles[i] = new Particle();
+  background(bgR, bgG, bgB);
+}
+
+function initGrid() {
+  cols = floor(width  / scl);
+  rows = floor(height / scl);
+  flowField = new Array(cols * rows);
+}
+
+function resizeParticles() {
+  while (particles.length < ParticleCount) particles.push(new Particle());
+  if (particles.length > ParticleCount) particles.splice(ParticleCount);
+}
+
+function clearCanvas() {
+  background(bgR, bgG, bgB);
+  for (let p of particles) p.reset();
+}
+
+function randomizeNoise() { noiseZ = random(1000); }
+
+function draw() {
+  if (paused) return;
+
+  if (fadeMode) {
+    noStroke();
+    fill(bgR, bgG, bgB, fadeAlphaVal);
+    rect(0, 0, width, height);
+  }
+
+  // Build flow field
+  let yoff = 0;
+  const useCurl = curlMode || currentMode === 4;
+  for (let y = 0; y < rows; y++) {
+    let xoff = 0;
+    for (let x = 0; x < cols; x++) {
+      let zNoise = zoff + zoffTime + noiseZ;
+      if (currentMode === 2 || currentMode === 3) zNoise += random(-0.0008, 0.0008);
+      if (useCurl) {
+        flowField[x + y * cols] = curlVector(xoff, yoff, zNoise);
+      } else {
+        let angle = noise(xoff, yoff, zNoise) * TWO_PI * 2;
+        flowField[x + y * cols] = createVector(
+          Math.cos(angle) * noiseStrength,
+          Math.sin(angle) * noiseStrength
+        );
+      }
+      xoff += inc;
+    }
+    yoff += inc;
+  }
+
+  const zSpeed = (currentMode === 2 || currentMode === 3)
+    ? 0.00005 + random(-0.00001, 0.00001)
+    : currentMode === 4 ? 0.00008 : 0.00005;
+  zoffTime += zSpeed;
+
+  globalHue = (globalHue + 0.4) % 360;
+
+  // Advance chord
+  chordFrame++;
+  const theme = getActiveSoundTheme();
+  const prog  = CHORD_PROGRESSIONS[theme];
+  if (chordFrame >= prog.dur) {
+    chordFrame = 0;
+    chordIndex = (chordIndex + 1) % prog.chords.length;
+    updateChordUI(theme, chordIndex);
+  }
+
+  for (let p of particles) {
+    p.follow(flowField);
+    p.update();
+    p.edges();
+    p.show();
+  }
+
+  if (attractorMode) {
+    for (let a of attractors) {
+      noFill();
+      stroke(a.str > 0 ? color(200,40,40,120) : color(40,40,200,120));
+      strokeWeight(1);
+      ellipse(a.x, a.y, 14, 14);
+      strokeWeight(0.5);
+      ellipse(a.x, a.y, a.rad * 2, a.rad * 2);
+    }
+  }
+
+  document.getElementById('fps-display').textContent = floor(frameRate()) + ' fps';
+  updateSonicAgents();
+}
+
+function updateChordUI(theme, idx) {
+  const prog = CHORD_PROGRESSIONS[theme];
+  const name = prog.names ? prog.names[idx] : '';
+  document.getElementById('chord-name').textContent = name;
+  const sheetLbl = document.getElementById('sheet-chord-label');
+  if (sheetLbl) sheetLbl.textContent = name;
+  const soundChord = document.getElementById('lbl-sound-chord');
+  if (soundChord) soundChord.textContent = name;
+}
+
+function mousePressed() {
+  if (!attractorMode) return;
+  if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
+  if (keyIsDown(SHIFT)) {
+    let best = -1, bestD = Infinity;
+    attractors.forEach((a, i) => { let d = dist(mouseX, mouseY, a.x, a.y); if (d < bestD) { bestD = d; best = i; } });
+    if (best >= 0 && bestD < 60) attractors.splice(best, 1);
+  } else {
+    attractors.push({ x: mouseX, y: mouseY, str: attractorStr, rad: attractorRad });
+  }
+  document.getElementById('lbl-att-count').textContent = attractors.length;
+}
+
+function touchStarted() {
+  if (!attractorMode) return false;
+  let cnv = document.querySelector('#canvas-wrap canvas');
+  if (!cnv) return false;
+  let rect = cnv.getBoundingClientRect();
+  let t = touches[0];
+  if (!t) return false;
+  let tx = (t.x - rect.left) * (width / rect.width);
+  let ty = (t.y - rect.top) * (height / rect.height);
+  if (tx < 0 || tx > width || ty < 0 || ty > height) return false;
+  attractors.push({ x: tx, y: ty, str: attractorStr, rad: attractorRad });
+  document.getElementById('lbl-att-count').textContent = attractors.length;
+  return false;
+}
+
+// ═══════════════════════════════════════════════════════
+//  EXPORT — PNG / VIDEO / WALLPAPER
+// ═══════════════════════════════════════════════════════
+let isRecording  = false;
+let mediaRecorder = null;
+let recChunks    = [];
+let recTimerInt  = null;
+let recElapsed   = 0;
+let recDuration  = 10;
+
+function showToast(msg, dur = 3200) {
+  const wrap = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  wrap.appendChild(t);
+  requestAnimationFrame(() => { requestAnimationFrame(() => t.classList.add('visible')); });
+  setTimeout(() => { t.classList.remove('visible'); setTimeout(() => t.remove(), 450); }, dur);
+}
+
+function startVideoExport() {
+  if (isRecording) { stopRecording(); return; }
+  const cnv = document.querySelector('#canvas-wrap canvas');
+  if (!cnv || !cnv.captureStream) {
+    showToast('Video capture not supported in this browser.');
+    return;
+  }
+  const mimeType = ['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm']
+    .find(m => MediaRecorder.isTypeSupported(m)) || 'video/webm';
+  const stream = cnv.captureStream(30);
+  mediaRecorder = new MediaRecorder(stream, { mimeType });
+  recChunks = [];
+
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recChunks.push(e.data); };
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(recChunks, { type: 'video/webm' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.download = 'flow-field.webm'; a.href = url; a.click();
+    URL.revokeObjectURL(url);
+    isRecording = false;
+    clearInterval(recTimerInt);
+    document.getElementById('rec-badge').classList.remove('show');
+    document.getElementById('btn-record').textContent = '⏺ Record WebM';
+    document.getElementById('btn-record').classList.remove('danger');
+    showToast('Video saved!');
+  };
+
+  mediaRecorder.start(500);
+  isRecording = true;
+  recElapsed  = 0;
+  document.getElementById('rec-badge').classList.add('show');
+  document.getElementById('btn-record').textContent = '⏹ Stop Recording';
+  document.getElementById('btn-record').classList.add('danger');
+
+  recTimerInt = setInterval(() => {
+    recElapsed++;
+    document.getElementById('rec-timer').textContent = recElapsed + 's';
+  }, 1000);
+
+  setTimeout(() => { if (isRecording) stopRecording(); }, recDuration * 1000);
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+}
+
+async function exportWallpaper(w, h, label) {
+  const prevW = canvasWidth, prevH = canvasHeight;
+  showToast(`Rendering ${label} wallpaper (3s)…`, 4000);
+
+  canvasWidth = w; canvasHeight = h;
+  resizeCanvas(w, h);
+  initGrid();
+  clearCanvas();
+
+  await new Promise(r => setTimeout(r, 3200));
+
+  pixelDensity(1);
+  saveCanvas(`wallpaper-${label.replace(/\s+/g,'-')}`, 'png');
+
+  canvasWidth = prevW; canvasHeight = prevH;
+  resizeCanvas(prevW, prevH);
+  initGrid();
+  clearCanvas();
+  showToast('Wallpaper saved!');
+}
+
+// ═══════════════════════════════════════════════════════
+//  CHORD PROGRESSIONS — harmonic voice map per theme
+//  Each chord: [bassHz, mid1Hz, mid2Hz, sparkleHz]
+// ═══════════════════════════════════════════════════════
+const CHORD_PROGRESSIONS = {
+  // I – vi – IV – V (C Major, serene, resolving)
+  minimal: {
+    names: ['Cmaj', 'Amin', 'Fmaj', 'Gmaj'],
+    chords: [
+      [65.41,  164.81, 196.00, 523.25],  // C2 E3 G3 C5
+      [55.00,  130.81, 164.81, 440.00],  // A1 C3 E3 A4
+      [87.31,  220.00, 261.63, 349.23],  // F2 A3 C4 F4
+      [98.00,  246.94, 293.66, 392.00],  // G2 B3 D4 G4
+    ],
+    dur: 240
+  },
+  // i – VII – VI – VII (D Natural Minor, cinematic)
+  midnight: {
+    names: ['Dmin', 'Cmaj', 'Bbmaj', 'Cmaj'],
+    chords: [
+      [73.42,  174.61, 220.00, 293.66],  // D2 F3 A3 D4
+      [65.41,  164.81, 196.00, 329.63],  // C2 E3 G3 E4
+      [58.27,  146.83, 174.61, 233.08],  // Bb1 D3 F3 Bb3
+      [65.41,  196.00, 261.63, 392.00],  // C2 G3 C4 G4
+    ],
+    dur: 300
+  },
+  // i – bIII – bVII – IV (D Minor Pentatonic, driving)
+  neon: {
+    names: ['Dmin', 'Fmaj', 'Cmaj', 'Gmin'],
+    chords: [
+      [73.42,  220.00, 293.66, 440.00],  // D2 A3 D4 A4
+      [87.31,  174.61, 261.63, 523.25],  // F2 F3 C4 C5
+      [65.41,  196.00, 261.63, 392.00],  // C2 G3 C4 G4
+      [98.00,  146.83, 196.00, 587.33],  // G2 D3 G3 D5
+    ],
+    dur: 148
+  },
+  // I – II – IV – I (F Lydian, floating, expansive)
+  ocean: {
+    names: ['Fmaj', 'Gmaj', 'Bbmaj', 'Fmaj'],
+    chords: [
+      [87.31,  174.61, 220.00, 349.23],  // F2 F3 A3 F4
+      [98.00,  196.00, 246.94, 392.00],  // G2 G3 B3 G4
+      [116.54, 233.08, 293.66, 466.16],  // Bb2 Bb3 D4 Bb4
+      [87.31,  220.00, 349.23, 440.00],  // F2 A3 F4 A4
+    ],
+    dur: 340
+  },
+  // I – bVII – IV – I (C Mixolydian, warm, modal)
+  desert: {
+    names: ['Cmaj', 'Bbmaj', 'Fmaj', 'Cmaj'],
+    chords: [
+      [65.41,  164.81, 196.00, 261.63],  // C2 E3 G3 C4
+      [58.27,  146.83, 174.61, 233.08],  // Bb1 D3 F3 Bb3
+      [87.31,  174.61, 220.00, 349.23],  // F2 F3 A3 F4
+      [65.41,  196.00, 261.63, 523.25],  // C2 G3 C4 C5
+    ],
+    dur: 260
+  }
+};
+
+// ═══════════════════════════════════════════════════════
+//  AUDIO ENGINE — Tone.js chord-based harmony
+// ═══════════════════════════════════════════════════════
+let audioEnabled    = false;
+let audioReady      = false;
+let masterVolume    = 0.5;
+let currentAudioTheme = null;
+let toneNodes       = null;
+
+const sonicAgents = [
+  { x:400, y:450, vx:0, vy:0, timer:0,   noteInterval:220, role:'bass'    },
+  { x:200, y:300, vx:0, vy:0, timer:50,  noteInterval:140, role:'mid1'    },
+  { x:600, y:300, vx:0, vy:0, timer:90,  noteInterval:155, role:'mid2'    },
+  { x:400, y:150, vx:0, vy:0, timer:120, noteInterval:68,  role:'sparkle' },
+];
+
+const THEME_AUDIO = {
+  minimal: {
+    scaleName: 'C Major · I–vi–IV–V',
+    timbreName: 'Fattriangle pads · Soft reverb',
+    bass:    { type:'sine',         attack:2.2, release:9.0,  vol:-12 },
+    mid:     { type:'fattriangle',  attack:3.0, release:8.0,  vol:-18, count:2, spread:10 },
+    sparkle: { type:'triangle',     attack:0.6, release:3.0,  vol:-22 },
+    filter:  { freq:4800, q:0.6 },
+    reverb:  { decay:3.5, wet:0.52 },
+    delay:   null,
+    speedFactors: [0.6, 0.9, 0.9, 1.8],
+    noteDur: [5.5, 3.5, 3.5, 1.2],
+  },
+  midnight: {
+    scaleName: 'D Natural Minor · i–VII–VI–VII',
+    timbreName: 'Fatsawtooth · Long reverb · Echo',
+    bass:    { type:'sine',         attack:2.8, release:10.0, vol:-11 },
+    mid:     { type:'fatsawtooth',  attack:4.0, release:9.0,  vol:-20, count:3, spread:14 },
+    sparkle: { type:'sine',         attack:1.2, release:4.5,  vol:-25 },
+    filter:  { freq:1100, q:2.2 },
+    reverb:  { decay:9.5, wet:0.80 },
+    delay:   { time:0.38, feedback:0.36, wet:0.35 },
+    speedFactors: [0.45, 0.7, 0.7, 1.3],
+    noteDur: [7.0, 5.0, 5.0, 2.0],
+  },
+  neon: {
+    scaleName: 'D Minor Pentatonic · i–bIII–bVII–IV',
+    timbreName: 'Fatsquare · Resonant filter · Delay',
+    bass:    { type:'square',       attack:0.06, release:1.5, vol:-14 },
+    mid:     { type:'fatsquare',    attack:0.2,  release:2.0, vol:-20, count:2, spread:8 },
+    sparkle: { type:'square',       attack:0.03, release:0.8, vol:-24 },
+    filter:  { freq:2400, q:6.5 },
+    reverb:  { decay:1.6, wet:0.42 },
+    delay:   { time:0.125, feedback:0.44, wet:0.30 },
+    speedFactors: [1.1, 1.7, 1.7, 2.8],
+    noteDur: [1.5, 1.0, 1.0, 0.3],
+  },
+  ocean: {
+    scaleName: 'F Lydian · I–II–IV–I',
+    timbreName: 'Fattriangle · Oceanic reverb · Delay',
+    bass:    { type:'sine',         attack:3.5, release:12.0, vol:-12 },
+    mid:     { type:'fattriangle',  attack:4.5, release:11.0, vol:-18, count:3, spread:12 },
+    sparkle: { type:'triangle',     attack:2.0, release:5.5,  vol:-22 },
+    filter:  { freq:5800, q:0.35 },
+    reverb:  { decay:13.0, wet:0.85 },
+    delay:   { time:0.33, feedback:0.26, wet:0.22 },
+    speedFactors: [0.40, 0.65, 0.65, 1.2],
+    noteDur: [9.0, 6.0, 6.0, 3.0],
+  },
+  desert: {
+    scaleName: 'C Mixolydian · I–bVII–IV–I',
+    timbreName: 'Fatsawtooth · Warm filter · Echo',
+    bass:    { type:'sine',         attack:1.8, release:6.0,  vol:-11 },
+    mid:     { type:'fatsawtooth',  attack:2.5, release:7.0,  vol:-18, count:2, spread:10 },
+    sparkle: { type:'triangle',     attack:0.9, release:3.5,  vol:-22 },
+    filter:  { freq:2800, q:1.6 },
+    reverb:  { decay:5.0, wet:0.60 },
+    delay:   { time:0.48, feedback:0.20, wet:0.18 },
+    speedFactors: [0.60, 0.95, 0.95, 1.75],
+    noteDur: [4.5, 3.0, 3.0, 1.5],
+  },
+};
+
+function getActiveSoundTheme() {
+  return document.body.getAttribute('data-theme') || 'minimal';
+}
+
+async function initAudio() {
+  if (audioReady) return;
+  await Tone.start();
+  rebuildAudioNodes();
+  audioReady = true;
+  resetSonicAgents();
+}
+
+function rebuildAudioNodes() {
+  if (toneNodes) {
+    try {
+      ['bass','mid1','mid2','sparkle','bassPan','mid1Pan','mid2Pan','sparklePan',
+       'filter','reverb','delay','master'].forEach(k => {
+        if (toneNodes[k]) toneNodes[k].dispose();
+      });
+    } catch(e) {}
+  }
+
+  const theme = getActiveSoundTheme();
+  const cfg   = THEME_AUDIO[theme] || THEME_AUDIO.minimal;
+  currentAudioTheme = theme;
+
+  const reverb = new Tone.Reverb({ decay: cfg.reverb.decay, wet: cfg.reverb.wet });
+  reverb.toDestination();
+
+  let delayNode = null;
+  if (cfg.delay) {
+    delayNode = new Tone.FeedbackDelay({
+      delayTime: cfg.delay.time, feedback: cfg.delay.feedback, wet: cfg.delay.wet
+    });
+    delayNode.connect(reverb);
+  }
+
+  const filter = new Tone.Filter({ frequency: cfg.filter.freq, type: 'lowpass', Q: cfg.filter.q });
+  filter.connect(cfg.delay ? delayNode : reverb);
+
+  const master = new Tone.Volume(Tone.gainToDb(masterVolume));
+  master.connect(filter);
+
+  const bassPan    = new Tone.Panner(0).connect(master);
+  const mid1Pan    = new Tone.Panner(-0.5).connect(master);
+  const mid2Pan    = new Tone.Panner(0.5).connect(master);
+  const sparklePan = new Tone.Panner(0).connect(master);
+
+  function makePoly(oscType, env, vol, dest, extraOpts) {
+    const oscDef = { type: oscType };
+    if (extraOpts) Object.assign(oscDef, extraOpts);
+    return new Tone.PolySynth(Tone.Synth, {
+      oscillator: oscDef,
+      envelope: { attack: env.attack, decay: 0.5, sustain: 0.70, release: env.release },
+      volume: vol
+    }).connect(dest);
+  }
+
+  const midExtra = cfg.mid.count ? { count: cfg.mid.count, spread: cfg.mid.spread } : undefined;
+
+  const bass    = makePoly(cfg.bass.type,    cfg.bass,    cfg.bass.vol,    bassPan);
+  const mid1    = makePoly(cfg.mid.type,     cfg.mid,     cfg.mid.vol,     mid1Pan, midExtra);
+  const mid2    = makePoly(cfg.mid.type,     cfg.mid,     cfg.mid.vol - 2, mid2Pan, midExtra);
+  const sparkle = makePoly(cfg.sparkle.type, cfg.sparkle, cfg.sparkle.vol, sparklePan);
+
+  toneNodes = { bass, mid1, mid2, sparkle, bassPan, mid1Pan, mid2Pan, sparklePan,
+                filter, reverb, delay: delayNode, master, cfg };
+
+  // Sync agent intervals from theme
+  const defaults = [220, 140, 155, 68];
+  sonicAgents.forEach((a, i) => {
+    a.noteInterval = Math.round(defaults[i] * (1 / (THEME_AUDIO[theme].speedFactors[i] || 1)));
+  });
+
+  // Update panel labels
+  const e1 = document.getElementById('lbl-sound-scale');
+  const e2 = document.getElementById('lbl-sound-timbre');
+  if (e1) e1.textContent = cfg.scaleName;
+  if (e2) e2.textContent = cfg.timbreName;
+
+  // Show chord strip
+  document.getElementById('chord-strip').classList.add('show');
+  updateChordUI(theme, chordIndex);
+}
+
+function resetSonicAgents() {
+  const w = width || canvasWidth, h = height || canvasHeight;
+  const starts = [[0.5,0.75],[0.25,0.5],[0.75,0.5],[0.5,0.25]];
+  sonicAgents.forEach((a, i) => {
+    a.x = w * starts[i][0]; a.y = h * starts[i][1];
+    a.vx = 0; a.vy = 0;
+    a.timer = i * 18;
+  });
+}
+
+function updateSonicAgents() {
+  if (!audioEnabled || !audioReady || !toneNodes) return;
+  if (!flowField || flowField.length === 0) return;
+
+  const theme = getActiveSoundTheme();
+  if (theme !== currentAudioTheme) { rebuildAudioNodes(); return; }
+
+  const cfg    = toneNodes.cfg;
+  const synths = [toneNodes.bass, toneNodes.mid1, toneNodes.mid2, toneNodes.sparkle];
+  const pans   = [toneNodes.bassPan, toneNodes.mid1Pan, toneNodes.mid2Pan, toneNodes.sparklePan];
+  const prog   = CHORD_PROGRESSIONS[theme];
+  const chord  = prog.chords[chordIndex];
+  const roles  = ['bass','mid1','mid2','sparkle'];
+
+  for (let i = 0; i < sonicAgents.length; i++) {
+    const a     = sonicAgents[i];
+    const speed = cfg.speedFactors[i] * maxSpeedVal;
+
+    // Follow flow field
+    let xi = Math.max(0, Math.min(cols - 1, Math.floor(a.x / scl)));
+    let yi = Math.max(0, Math.min(rows - 1, Math.floor(a.y / scl)));
+    const f = flowField[xi + yi * cols];
+    if (f) {
+      a.vx += f.x * cfg.speedFactors[i];
+      a.vy += f.y * cfg.speedFactors[i];
+      let mag = Math.hypot(a.vx, a.vy);
+      if (mag > speed) { a.vx = a.vx / mag * speed; a.vy = a.vy / mag * speed; }
+    }
+    a.x += a.vx; a.y += a.vy;
+    a.vx *= 0.92; a.vy *= 0.92;
+
+    const W = width || canvasWidth, H = height || canvasHeight;
+    if (a.x < 0) a.x += W; if (a.x > W) a.x -= W;
+    if (a.y < 0) a.y += H; if (a.y > H) a.y -= H;
+
+    pans[i].pan.rampTo(((a.x / W) * 2 - 1) * 0.75, 0.9);
+
+    // Trigger note using CHORD TONE for this voice role
+    a.timer++;
+    if (a.timer >= a.noteInterval) {
+      a.timer = 0;
+
+      // Get the chord-designated frequency for this voice
+      let freq = chord[i]; // chord[0]=bass, [1]=mid1, [2]=mid2, [3]=sparkle
+
+      // Slight Y-position octave modulation (±1 octave based on vertical position)
+      // This adds melodic movement while preserving harmonic identity
+      const yFrac = 1 - (a.y / H);
+      if (i === 3 && yFrac > 0.7) {
+        freq *= 2; // sparkle goes up an octave near the top
+      } else if (i === 0 && yFrac < 0.2) {
+        freq *= 0.5; // bass drops an octave near the bottom
+      }
+
+      const dur = cfg.noteDur[i] + (Math.random() * 0.5 - 0.25);
+      try { synths[i].triggerAttackRelease(freq, Math.max(0.1, dur)); } catch(e) {}
+    }
+  }
+
+  // Modulate filter & reverb based on flow busyness
+  const avgVx = sonicAgents.reduce((s,a)=>s+a.vx,0)/4;
+  const avgVy = sonicAgents.reduce((s,a)=>s+a.vy,0)/4;
+  const variance = sonicAgents.reduce((s,a)=>s+Math.hypot(a.vx-avgVx,a.vy-avgVy),0)/4;
+  const busyness = Math.min(1, variance / (maxSpeedVal * 2));
+  toneNodes.filter.frequency.rampTo(Math.min(cfg.filter.freq * 1.8, Math.max(200,
+    cfg.filter.freq * (0.55 + busyness * 0.9))), 3.5);
+  toneNodes.reverb.wet.rampTo(Math.min(0.95, cfg.reverb.wet + busyness * 0.12), 5.0);
+}
+
+// ═══════════════════════════════════════════════════════
+//  UI WIRING
+// ═══════════════════════════════════════════════════════
+(function () {
+  const $ = id => document.getElementById(id);
+  const lbl = (id, v) => { let e = $(id); if (e) e.textContent = v; };
+
+  // ── Slider fill helper ──
+  function fillSlider(slider) {
+    const min = +slider.min, max = +slider.max, val = +slider.value;
+    const pct = Math.round((val - min) / (max - min) * 100);
+    slider.style.setProperty('--fill', pct + '%');
+  }
+  document.querySelectorAll('input[type="range"]').forEach(s => {
+    fillSlider(s);
+    s.addEventListener('input', () => fillSlider(s));
+  });
+
+  // ── Mode Tabs (desktop + mobile) ──
+  function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-tab, .mob-mode-tab').forEach(b => {
+      b.classList.toggle('active', +b.dataset.mode === mode);
+    });
+    $('row-zoff').style.display = (mode === 2 || mode === 3) ? 'flex' : 'none';
+    if (mode === 4) { curlMode = false; /* fluid mode uses curl internally */ }
+  }
+  document.querySelectorAll('.mode-tab').forEach(btn => {
+    btn.addEventListener('click', () => setMode(+btn.dataset.mode));
+  });
+
+  // Build mobile mode tabs
+  const mobileModesEl = $('mobile-mode-row');
+  [['⟿','Smooth',0],['〜','Turb.',1],['◎','Evolv.',2],['✦','Chaos',3],['∿','Fluid',4]].forEach(([icon,label,m]) => {
+    const b = document.createElement('button');
+    b.className = 'mode-tab mob-mode-tab' + (m===0?' active':'');
+    b.dataset.mode = m;
+    b.innerHTML = `<span class="mode-icon">${icon}</span> ${label}`;
+    b.style.flexShrink = '0';
+    b.addEventListener('click', () => setMode(m));
+    mobileModesEl.appendChild(b);
+  });
+
+  // Build mobile theme row
+  const mobilThemeEl = $('mobile-theme-row');
+  [['minimal','#2c3540'],['midnight','#0e1520'],['neon','linear-gradient(135deg,#0a0a0a 50%,#00e87a 50%)'],
+   ['ocean','#0a3560'],['desert','#763a1c']].forEach(([t, bg]) => {
+    const d = document.createElement('div');
+    d.className = 'theme-dot' + (t==='minimal'?' active':'');
+    d.dataset.theme = t;
+    d.style.background = bg;
+    if (t === 'midnight') d.style.border = '1px solid #2a3a4a';
+    d.addEventListener('click', () => applyTheme(t));
+    mobilThemeEl.appendChild(d);
+  });
+
+  function applyTheme(t) {
+    document.querySelectorAll('.theme-dot').forEach(d => d.classList.toggle('active', d.dataset.theme === t));
+    document.body.setAttribute('data-theme', t);
+    chordIndex = 0; chordFrame = 0;
+    updateChordUI(t, 0);
+  }
+  document.querySelectorAll('.theme-dot').forEach(dot => {
+    dot.addEventListener('click', () => applyTheme(dot.dataset.theme));
+  });
+
+  // ── Collapse ──
+  document.querySelectorAll('.section-header').forEach(hdr => {
+    hdr.addEventListener('click', () => hdr.closest('.ctrl-section').classList.toggle('collapsed'));
+  });
+
+  // ── Topbar Actions ──
+  $('btn-pause').addEventListener('click', () => {
+    paused = !paused;
+    $('btn-pause').textContent = paused ? '▶ Play' : '⏸ Pause';
+    $('btn-pause').classList.toggle('active', paused);
+  });
+  $('btn-clear').addEventListener('click', clearCanvas);
+  $('btn-randomize').addEventListener('click', () => { randomizeNoise(); noiseDetail(noiseOctaves, 0.5); });
+
+  async function toggleSound() {
+    if (!audioEnabled) {
+      audioEnabled = true;
+      $('btn-sound').classList.add('active');
+      $('btn-sound').textContent = '♪ On';
+      $('tog-sound').classList.add('on');
+      $('lbl-sound-state').textContent = 'On';
+      $('sound-palette').style.display = 'block';
+      await initAudio();
+    } else {
+      audioEnabled = false;
+      $('btn-sound').classList.remove('active');
+      $('btn-sound').textContent = '♪ Sound';
+      $('tog-sound').classList.remove('on');
+      $('lbl-sound-state').textContent = 'Off';
+      $('sound-palette').style.display = 'none';
+      document.getElementById('chord-strip').classList.remove('show');
+      if (toneNodes) {
+        try { ['bass','mid1','mid2','sparkle'].forEach(k => toneNodes[k].releaseAll()); } catch(e) {}
+      }
+    }
+  }
+  $('tog-sound').addEventListener('click', toggleSound);
+  $('btn-sound').addEventListener('click', toggleSound);
+
+  $('sl-volume').addEventListener('input', function() {
+    masterVolume = +this.value;
+    lbl('lbl-volume', masterVolume.toFixed(2));
+    if (toneNodes && toneNodes.master)
+      toneNodes.master.volume.rampTo(Tone.gainToDb(masterVolume), 0.3);
+  });
+
+  // ── Canvas ──
+  $('sl-width').addEventListener('input',  function() { canvasWidth  = +this.value; lbl('lbl-width',  canvasWidth);  });
+  $('sl-height').addEventListener('input', function() { canvasHeight = +this.value; lbl('lbl-height', canvasHeight); });
+  $('btn-resize').addEventListener('click', () => {
+    resizeCanvas(canvasWidth, canvasHeight);
+    initGrid();
+    background(bgR, bgG, bgB);
+    for (let p of particles) p.reset();
+  });
+
+  // ── Color ──
+  function syncColorModeUI() {
+    let solid = colorMode === 0;
+    $('row-line-color').style.display = solid ? 'flex' : 'none';
+    $('row-sat').style.display        = solid ? 'none' : 'flex';
+    $('row-lit').style.display        = solid ? 'none' : 'flex';
+    $('row-hue-shift').style.display  = solid ? 'none' : 'flex';
+  }
+  $('pick-bg').addEventListener('input', function() { let {r,g,b} = hexToRgb(this.value); bgR=r; bgG=g; bgB=b; });
+  $('pick-line').addEventListener('input', function() { let {r,g,b} = hexToRgb(this.value); lineR=r; lineG=g; lineB=b; });
+  $('btn-invert').addEventListener('click', () => {
+    [bgR,lineR]=[lineR,bgR]; [bgG,lineG]=[lineG,bgG]; [bgB,lineB]=[lineB,bgB];
+    $('pick-bg').value   = rgbToHex(bgR, bgG, bgB);
+    $('pick-line').value = rgbToHex(lineR, lineG, lineB);
+    clearCanvas();
+  });
+  document.querySelectorAll('#color-mode-btns .grp-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#color-mode-btns .grp-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      colorMode = +btn.dataset.cmode;
+      syncColorModeUI();
+    });
+  });
+  $('sl-sat').addEventListener('input',       function() { saturation = +this.value; lbl('lbl-sat', saturation.toFixed(2)); });
+  $('sl-lit').addEventListener('input',       function() { liteness   = +this.value; lbl('lbl-lit', liteness.toFixed(2)); });
+  $('sl-hue-shift').addEventListener('input', function() { hueShift   = +this.value; lbl('lbl-hue-shift', hueShift + '°'); });
+
+  // ── Flow Field ──
+  $('sl-inc').addEventListener('input',   function() { inc           = +this.value; lbl('lbl-inc', inc.toFixed(3)); });
+  $('sl-noise').addEventListener('input', function() { noiseStrength = +this.value; lbl('lbl-noise', noiseStrength.toFixed(2)); });
+  $('sl-zoff').addEventListener('input',  function() { zoff          = +this.value; lbl('lbl-zoff', zoff.toFixed(2)); });
+  $('tog-curl').addEventListener('click', function() {
+    curlMode = !curlMode;
+    this.classList.toggle('on', curlMode);
+    lbl('lbl-curl', curlMode ? 'On' : 'Off');
+  });
+
+  // ── Lines ──
+  $('sl-sw').addEventListener('input', function() { strokeWeightVal = +this.value; lbl('lbl-sw', strokeWeightVal.toFixed(1)); });
+  $('tog-fade').addEventListener('click', function() {
+    fadeMode = !fadeMode;
+    this.classList.toggle('on', fadeMode);
+    lbl('lbl-fade-state', fadeMode ? 'On' : 'Off');
+  });
+
+  // ── Particles ──
+  $('sl-particles').addEventListener('input', function() {
+    ParticleCount = +this.value; lbl('lbl-particles', ParticleCount); resizeParticles();
+  });
+  $('sl-speed').addEventListener('input', function() { maxSpeedVal  = +this.value; lbl('lbl-speed', maxSpeedVal.toFixed(1)); });
+  $('sl-life').addEventListener('input',  function() { lifespanBase = +this.value; lbl('lbl-life', lifespanBase); });
+
+  // ── Symmetry ──
+  document.querySelectorAll('#sym-btns .grp-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#sym-btns .grp-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      symmetryMode = +btn.dataset.smode;
+    });
+  });
+
+  // ── Attractors ──
+  $('tog-att').addEventListener('click', function() {
+    attractorMode = !attractorMode;
+    this.classList.toggle('on', attractorMode);
+    lbl('lbl-att-state', attractorMode ? 'On' : 'Off');
+    $('att-hint').style.display    = attractorMode ? 'block' : 'none';
+    $('canvas-wrap').classList.toggle('att-mode', attractorMode);
+  });
+  $('sl-att-str').addEventListener('input', function() { attractorStr = +this.value; lbl('lbl-att-str', attractorStr.toFixed(1)); });
+  $('sl-att-rad').addEventListener('input', function() { attractorRad = +this.value; lbl('lbl-att-rad', attractorRad); });
+  $('btn-clear-att').addEventListener('click', () => { attractors = []; lbl('lbl-att-count', 0); });
+
+  // ── Export ──
+  $('btn-export').addEventListener('click',    () => saveCanvas('flow-field', 'png'));
+  $('btn-export-hi').addEventListener('click', () => { pixelDensity(2); saveCanvas('flow-field-2x', 'png'); pixelDensity(1); });
+
+  // Video
+  document.querySelectorAll('#rec-dur-btns .grp-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#rec-dur-btns .grp-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      recDuration = +btn.dataset.dur;
+    });
+  });
+  $('btn-record').addEventListener('click', startVideoExport);
+
+  // Wallpaper
+  document.querySelectorAll('.wp-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const w = +btn.dataset.w, h = +btn.dataset.h;
+      const label = btn.textContent;
+      exportWallpaper(w, h, label);
+    });
+  });
+
+  // ── Steppers ──
+  const stepCfg = {
+    scl:          { min:2, max:30, step:1, lbl:'lbl-scl',          dp:0, get:()=>scl,            set:v=>{ scl=v; initGrid(); } },
+    transparency: { min:1, max:80, step:1, lbl:'lbl-transparency', dp:0, get:()=>lineTransparency, set:v=>{ lineTransparency=v; } },
+    octaves:      { min:1, max:8,  step:1, lbl:'lbl-octaves',      dp:0, get:()=>noiseOctaves,    set:v=>{ noiseOctaves=v; noiseDetail(v,0.5); } },
+    fadeAlpha:    { min:1, max:40, step:1, lbl:'lbl-fadeAlpha',    dp:0, get:()=>fadeAlphaVal,    set:v=>{ fadeAlphaVal=v; } },
+  };
+  document.querySelectorAll('.step-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      let t = btn.dataset.target, dir = +btn.dataset.dir, cfg = stepCfg[t];
+      if (!cfg) return;
+      let v = Math.min(cfg.max, Math.max(cfg.min, cfg.get() + dir * cfg.step));
+      cfg.set(v); lbl(cfg.lbl, v.toFixed(cfg.dp));
+    });
+  });
+
+  // ── Tooltip ──
+  const tt = $('tt');
+  document.querySelectorAll('.info').forEach(el => {
+    el.addEventListener('mouseenter', e => { tt.textContent = el.dataset.tip; tt.style.display = 'block'; moveTT(e); });
+    el.addEventListener('mousemove', moveTT);
+    el.addEventListener('mouseleave', () => { tt.style.display = 'none'; });
+  });
+  function moveTT(e) {
+    let tx = Math.max(8, Math.min(window.innerWidth - 208, e.clientX - 200));
+    let ty = Math.max(8, e.clientY - 54);
+    tt.style.left = tx + 'px'; tt.style.top = ty + 'px';
+  }
+
+  // ── Mobile Sheet Toggle ──
+  const sheetHandle = $('sheet-handle');
+  const panel = $('control-panel');
+  let sheetOpen = false;
+
+  if (sheetHandle) {
+    sheetHandle.addEventListener('click', () => {
+      sheetOpen = !sheetOpen;
+      panel.classList.toggle('open', sheetOpen);
+    });
+    // Close sheet when tapping outside (on canvas)
+    document.getElementById('canvas-wrap').addEventListener('touchstart', () => {
+      if (sheetOpen) { sheetOpen = false; panel.classList.remove('open'); }
+    }, { passive: true });
+  }
+
+  // Drag-to-open sheet
+  let touchStartY = null, startTransform = null;
+  if (sheetHandle) {
+    sheetHandle.addEventListener('touchstart', e => {
+      touchStartY = e.touches[0].clientY;
+      panel.style.transition = 'none';
+    }, { passive: true });
+    sheetHandle.addEventListener('touchmove', e => {
+      if (touchStartY === null) return;
+      const dy = e.touches[0].clientY - touchStartY;
+      const maxClose = window.innerHeight * 0.85 - 52;
+      const clampedY = Math.max(0, Math.min(maxClose, sheetOpen ? dy : maxClose + dy));
+      panel.style.transform = `translateY(${clampedY}px)`;
+    }, { passive: true });
+    sheetHandle.addEventListener('touchend', e => {
+      if (touchStartY === null) return;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      sheetOpen = dy < -30 || (sheetOpen && dy < 60);
+      panel.style.transition = '';
+      panel.style.transform = '';
+      panel.classList.toggle('open', sheetOpen);
+      touchStartY = null;
+    }, { passive: true });
+  }
+
+  // Initial sync
+  syncColorModeUI();
+  updateChordUI(getActiveSoundTheme(), 0);
+})();
+</script>
+</body>
+</html>
