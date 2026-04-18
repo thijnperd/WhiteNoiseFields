@@ -90,6 +90,13 @@
       --shadow:      0 2px 16px rgba(118,58,28,0.12);
     }
 
+    /* ═══════════ EASING CURVES (Emil: always custom curves, never browser defaults) ═══════════ */
+    :root {
+      --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+      --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
     html, body {
       height: 100%; min-height: 100dvh;
       font-family: 'Syne', system-ui, sans-serif;
@@ -130,9 +137,15 @@
       border: 1px solid var(--border); background: transparent;
       border-radius: 4px; font-size: 11px; font-weight: 600;
       font-family: 'Syne', sans-serif;
-      color: var(--slate); cursor: pointer; transition: all 0.15s; white-space: nowrap;
+      color: var(--slate); cursor: pointer;
+      transition: background 120ms var(--ease-out), color 120ms var(--ease-out),
+                  border-color 120ms var(--ease-out), transform 100ms var(--ease-out);
+      white-space: nowrap; touch-action: manipulation;
     }
-    .mode-tab:hover  { background: var(--accent-soft); color: var(--charcoal); }
+    @media (hover: hover) and (pointer: fine) {
+      .mode-tab:hover { background: var(--accent-soft); color: var(--charcoal); }
+    }
+    .mode-tab:active { transform: scale(0.96); }
     .mode-tab.active { background: var(--charcoal); border-color: var(--charcoal); color: var(--active-text); }
     .mode-icon { font-size: 13px; line-height: 1; }
 
@@ -142,9 +155,15 @@
       border: 1px solid var(--border); background: transparent;
       border-radius: 4px; font-size: 11px; font-weight: 600;
       font-family: 'Syne', sans-serif;
-      color: var(--slate); cursor: pointer; transition: all 0.15s; white-space: nowrap;
+      color: var(--slate); cursor: pointer;
+      transition: background 120ms var(--ease-out), color 120ms var(--ease-out),
+                  border-color 120ms var(--ease-out), transform 100ms var(--ease-out);
+      white-space: nowrap; touch-action: manipulation;
     }
-    .action-btn:hover  { background: var(--accent-soft); color: var(--charcoal); }
+    @media (hover: hover) and (pointer: fine) {
+      .action-btn:hover { background: var(--accent-soft); color: var(--charcoal); }
+    }
+    .action-btn:active { transform: scale(0.96); }
     .action-btn.active { background: var(--charcoal); border-color: var(--charcoal); color: var(--active-text); }
     #btn-sound.active  { background: #1e7a4a; border-color: #1e7a4a; color: #fff; }
 
@@ -157,9 +176,12 @@
     .theme-dot {
       width: 16px; height: 16px; border-radius: 50%;
       border: 2px solid transparent; cursor: pointer;
-      transition: transform 0.15s, border-color 0.15s; flex-shrink: 0;
+      transition: transform 150ms var(--ease-out), border-color 150ms var(--ease-out);
+      flex-shrink: 0; touch-action: manipulation;
     }
-    .theme-dot:hover  { transform: scale(1.3); }
+    @media (hover: hover) and (pointer: fine) {
+      .theme-dot:hover { transform: scale(1.3); }
+    }
     .theme-dot.active { border-color: var(--charcoal); transform: scale(1.1); }
 
     #fps-display {
@@ -195,11 +217,15 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: 11px 16px 11px; cursor: pointer; user-select: none;
       font-size: 9.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--text-muted); transition: color 0.15s;
+      color: var(--text-muted);
+      transition: color 150ms var(--ease-out);
+      touch-action: manipulation;
     }
-    .section-header:hover { color: var(--charcoal); }
+    @media (hover: hover) and (pointer: fine) {
+      .section-header:hover { color: var(--charcoal); }
+    }
     .sec-num { color: var(--mid-gray); margin-right: 5px; font-family: 'JetBrains Mono', monospace; font-size: 9px; }
-    .chevron { font-size: 10px; transition: transform 0.2s; color: var(--mid-gray); }
+    .chevron { font-size: 10px; transition: transform 220ms var(--ease-in-out); color: var(--mid-gray); }
     .ctrl-section.collapsed .chevron      { transform: rotate(-90deg); }
     .ctrl-section.collapsed .section-body { display: none; }
     .section-body { padding: 6px 16px 14px; display: flex; flex-direction: column; gap: 11px; }
@@ -220,9 +246,12 @@
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%;
       background: var(--charcoal); border: 2px solid var(--panel-bg);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.22); cursor: pointer; transition: transform 0.1s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.22); cursor: pointer;
+      transition: transform 100ms var(--ease-out);
     }
-    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.25); }
+    @media (hover: hover) and (pointer: fine) {
+      input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.25); }
+    }
     input[type="range"]::-moz-range-thumb {
       width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--panel-bg);
       background: var(--charcoal); cursor: pointer;
@@ -231,14 +260,19 @@
     /* steppers */
     .stepper-wrap { display: flex; align-items: center; gap: 6px; }
     .step-btn {
-      width: 24px; height: 24px;
+      width: 28px; height: 28px;
       border: 1px solid var(--border); background: var(--accent-soft);
       border-radius: 4px; font-size: 14px; font-weight: 500;
       color: var(--charcoal); cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      transition: all 0.12s; flex-shrink: 0;
+      transition: background 120ms var(--ease-out), color 120ms var(--ease-out),
+                  border-color 120ms var(--ease-out), transform 100ms var(--ease-out);
+      flex-shrink: 0; touch-action: manipulation;
     }
-    .step-btn:hover { background: var(--charcoal); color: var(--active-text); border-color: var(--charcoal); }
+    @media (hover: hover) and (pointer: fine) {
+      .step-btn:hover { background: var(--charcoal); color: var(--active-text); border-color: var(--charcoal); }
+    }
+    .step-btn:active { transform: scale(0.9); background: var(--charcoal); color: var(--active-text); border-color: var(--charcoal); }
 
     .val-badge {
       font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
@@ -247,31 +281,41 @@
 
     /* buttons */
     .full-btn {
-      width: 100%; padding: 8px 12px; background: var(--charcoal);
+      width: 100%; padding: 9px 12px; background: var(--charcoal);
       color: var(--active-text); border: none; border-radius: 5px;
       font-size: 11.5px; font-weight: 700; font-family: 'Syne', sans-serif;
-      cursor: pointer; transition: opacity 0.15s, transform 0.1s; letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: opacity 150ms var(--ease-out), transform 100ms var(--ease-out);
+      letter-spacing: 0.02em; touch-action: manipulation;
     }
-    .full-btn:hover  { opacity: 0.82; }
-    .full-btn:active { transform: scale(0.98); }
+    @media (hover: hover) and (pointer: fine) {
+      .full-btn:hover { opacity: 0.82; }
+      .full-btn.sec:hover { background: var(--charcoal); color: var(--active-text); }
+    }
+    .full-btn:active { transform: scale(0.97); }
     .full-btn.sec {
       background: var(--accent-soft); color: var(--charcoal);
       border: 1px solid var(--border);
     }
-    .full-btn.sec:hover { background: var(--charcoal); color: var(--active-text); }
     .full-btn.danger { background: #c0392b; }
     .full-btn.success { background: #1a6a3a; }
 
     /* button groups */
     .btn-group { display: flex; flex-wrap: wrap; gap: 3px; }
     .grp-btn {
-      padding: 4px 9px;
+      padding: 5px 10px;
       border: 1px solid var(--border); background: transparent;
       border-radius: 3px; font-size: 10px; font-weight: 700;
       font-family: 'Syne', sans-serif;
-      color: var(--slate); cursor: pointer; transition: all 0.12s;
+      color: var(--slate); cursor: pointer;
+      transition: background 120ms var(--ease-out), color 120ms var(--ease-out),
+                  border-color 120ms var(--ease-out), transform 100ms var(--ease-out);
+      touch-action: manipulation;
     }
-    .grp-btn:hover  { background: var(--accent-soft); color: var(--charcoal); }
+    @media (hover: hover) and (pointer: fine) {
+      .grp-btn:hover { background: var(--accent-soft); color: var(--charcoal); }
+    }
+    .grp-btn:active { transform: scale(0.95); }
     .grp-btn.active { background: var(--charcoal); color: var(--active-text); border-color: var(--charcoal); }
 
     /* color pickers */
@@ -284,29 +328,38 @@
     /* toggles */
     .toggle-wrap { display: flex; align-items: center; gap: 8px; }
     .toggle {
-      width: 34px; height: 19px; background: var(--mid-gray);
+      width: 36px; height: 20px; background: var(--mid-gray);
       border-radius: 10px; position: relative; cursor: pointer;
-      transition: background 0.2s; border: none; flex-shrink: 0;
+      transition: background 200ms var(--ease-out); border: none; flex-shrink: 0;
+      touch-action: manipulation;
     }
     .toggle::after {
       content: ''; position: absolute;
-      width: 13px; height: 13px; background: white; border-radius: 50%;
-      top: 3px; left: 3px; transition: left 0.2s;
+      width: 14px; height: 14px; background: white; border-radius: 50%;
+      top: 3px; left: 3px;
+      transition: left 200ms var(--ease-out), transform 100ms var(--ease-out);
       box-shadow: 0 1px 3px rgba(0,0,0,0.25);
     }
+    .toggle:active::after { transform: scaleX(1.25); }
     .toggle.on { background: var(--charcoal); }
-    .toggle.on::after { left: 18px; }
+    .toggle.on::after { left: 19px; }
     .toggle-label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
 
     /* export grid */
     .exp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
     .exp-btn {
-      padding: 7px 8px; background: var(--accent-soft);
+      padding: 8px 8px; background: var(--accent-soft);
       border: 1px solid var(--border); border-radius: 4px;
       font-size: 10.5px; font-weight: 700; font-family: 'Syne', sans-serif;
-      color: var(--charcoal); cursor: pointer; transition: all 0.12s; text-align: center;
+      color: var(--charcoal); cursor: pointer;
+      transition: background 120ms var(--ease-out), color 120ms var(--ease-out),
+                  border-color 120ms var(--ease-out), transform 100ms var(--ease-out);
+      text-align: center; touch-action: manipulation;
     }
-    .exp-btn:hover { background: var(--charcoal); color: var(--active-text); border-color: var(--charcoal); }
+    @media (hover: hover) and (pointer: fine) {
+      .exp-btn:hover { background: var(--charcoal); color: var(--active-text); border-color: var(--charcoal); }
+    }
+    .exp-btn:active { transform: scale(0.96); background: var(--charcoal); color: var(--active-text); border-color: var(--charcoal); }
     .exp-btn.rec-active { background: #c0392b; color: #fff; border-color: #c0392b; }
     .exp-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); padding-top: 4px; }
 
@@ -340,12 +393,15 @@
     }
     .info {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 13px; height: 13px; border-radius: 50%;
+      width: 14px; height: 14px; border-radius: 50%;
       background: var(--mid-gray); color: var(--slate);
       font-size: 8px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
-      cursor: help; flex-shrink: 0; transition: background 0.12s;
+      cursor: help; flex-shrink: 0;
+      transition: background 150ms var(--ease-out), color 150ms var(--ease-out);
     }
-    .info:hover { background: var(--charcoal); color: var(--active-text); }
+    @media (hover: hover) and (pointer: fine) {
+      .info:hover { background: var(--charcoal); color: var(--active-text); }
+    }
 
     /* attractor hint */
     #att-hint {
@@ -376,21 +432,28 @@
       background: var(--charcoal); color: var(--active-text);
       padding: 8px 18px; border-radius: 8px;
       font-size: 12px; font-weight: 600; font-family: 'Syne', sans-serif;
-      opacity: 0; transform: translateY(12px); transition: all 0.3s ease;
+      opacity: 0; transform: translateY(8px) scale(0.97);
+      transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out);
       box-shadow: 0 4px 20px rgba(0,0,0,0.28);
     }
-    .toast.visible { opacity: 1; transform: translateY(0); }
+    .toast.visible { opacity: 1; transform: translateY(0) scale(1); }
 
     /* ═══════════ MOBILE ═══════════ */
     @media (max-width: 767px) {
       :root { --topbar-h: 48px; --panel-w: 100%; }
 
-      #topbar { padding: 0 10px; gap: 6px; }
+      #topbar { padding: 0 10px; gap: 5px; }
       #title-block { margin-right: 0; }
       #app-sub { display: none; }
       #mode-tabs { display: none; }
       #theme-bar { display: none; }
       #fps-display { display: none; }
+
+      /* Larger tap targets for topbar action buttons on mobile */
+      .action-btn {
+        padding: 7px 10px;
+        min-height: 36px;
+      }
 
       #layout { display: block; padding-top: var(--topbar-h); }
       #canvas-wrap {
@@ -413,22 +476,39 @@
         border-radius: 18px 18px 0 0;
         border-left: none;
         border-top: 1px solid var(--border);
-        box-shadow: 0 -6px 32px rgba(0,0,0,0.16);
-        transform: translateY(calc(100% - 52px));
-        transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+        box-shadow: 0 -8px 40px rgba(0,0,0,0.18);
+        transform: translateY(calc(100% - 56px));
+        /* FIX: iOS-tuned drawer easing for satisfying open/close */
+        transition: transform 380ms var(--ease-drawer);
         z-index: 300;
         padding-top: 0;
+        /* FIX: Enable smooth scrolling of panel content on iOS */
+        overflow-y: scroll;
+        -webkit-overflow-scrolling: touch;
+        /* FIX: Contain scroll within panel, don't let it bubble to canvas */
+        overscroll-behavior: contain;
       }
       #control-panel.open { transform: translateY(0); }
 
       #sheet-handle {
         display: flex; flex-direction: column; align-items: center;
         padding: 10px 16px 8px; cursor: pointer; user-select: none; flex-shrink: 0;
-        gap: 6px;
+        gap: 5px;
+        /* Prevent handle drag from triggering canvas underneath */
+        touch-action: none;
+        /* Sticky so it stays visible while scrolling */
+        position: sticky; top: 0;
+        background: var(--panel-bg);
+        z-index: 1;
+        border-radius: 18px 18px 0 0;
+        min-height: 56px;
+        justify-content: center;
       }
       .sheet-drag-bar {
         width: 36px; height: 4px; background: var(--mid-gray); border-radius: 2px;
+        transition: background 150ms var(--ease-out), transform 150ms var(--ease-out);
       }
+      #sheet-handle:active .sheet-drag-bar { background: var(--slate); transform: scaleX(0.85); }
       .sheet-peek {
         display: flex; align-items: center; justify-content: space-between;
         width: 100%;
@@ -444,14 +524,38 @@
         scrollbar-width: none;
       }
       #mobile-mode-row::-webkit-scrollbar { display: none; }
+
+      /* Larger tap targets for mobile mode tabs */
+      #mobile-mode-row .mode-tab {
+        min-height: 36px; padding: 6px 12px;
+      }
+
       #mobile-theme-row {
         display: flex; gap: 6px; padding: 0 12px 10px; align-items: center;
         border-bottom: 1px solid var(--light-gray); margin-bottom: 4px;
       }
+
+      /* Larger tap targets for section headers on mobile */
+      .section-header { padding: 13px 16px; }
+
+      /* Larger tap targets for toggle buttons on mobile */
+      .toggle { width: 40px; height: 22px; }
+      .toggle::after { width: 16px; height: 16px; }
+      .toggle.on::after { left: 21px; }
+
       #chord-strip { display: none !important; }
     }
     @media (min-width: 768px) {
       #mobile-mode-row, #mobile-theme-row { display: none; }
+    }
+
+    /* Respect reduced-motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+      .rec-dot { animation: none !important; opacity: 1; }
     }
   </style>
 </head>
@@ -1132,17 +1236,24 @@ function mousePressed() {
 }
 
 function touchStarted() {
-  if (!attractorMode) return false;
+  // ⚠️ CRITICAL: never return false here when not in attractor mode.
+  // p5's touchStarted() returning false calls e.preventDefault() on the
+  // canvas touch event. On iOS this blocks synthetic click events from
+  // firing on *all* elements (including fixed-positioned panel buttons),
+  // because iOS hit-tests the underlying canvas even for overlaid elements.
+  if (!attractorMode) return true;
   let cnv = document.querySelector('#canvas-wrap canvas');
-  if (!cnv) return false;
+  if (!cnv) return true;
   let rect = cnv.getBoundingClientRect();
   let t = touches[0];
-  if (!t) return false;
+  if (!t) return true;
   let tx = (t.x - rect.left) * (width / rect.width);
   let ty = (t.y - rect.top) * (height / rect.height);
-  if (tx < 0 || tx > width || ty < 0 || ty > height) return false;
+  if (tx < 0 || tx > width || ty < 0 || ty > height) return true;
   attractors.push({ x: tx, y: ty, str: attractorStr, rad: attractorRad });
   document.getElementById('lbl-att-count').textContent = attractors.length;
+  // Only prevent default when we actually handle an attractor placement
+  // (prevents accidental page scroll while placing attractors on canvas)
   return false;
 }
 
@@ -1796,6 +1907,8 @@ function updateSonicAgents() {
     sheetHandle.addEventListener('click', () => {
       sheetOpen = !sheetOpen;
       panel.classList.toggle('open', sheetOpen);
+      // Reset scroll position when closing so handle peek looks clean
+      if (!sheetOpen) setTimeout(() => { panel.scrollTop = 0; }, 380);
     });
     // Close sheet when tapping outside (on canvas)
     document.getElementById('canvas-wrap').addEventListener('touchstart', () => {
@@ -1803,27 +1916,36 @@ function updateSonicAgents() {
     }, { passive: true });
   }
 
-  // Drag-to-open sheet
-  let touchStartY = null, startTransform = null;
+  // Drag-to-open sheet (only from the handle, not panel content)
+  let touchStartY = null;
   if (sheetHandle) {
     sheetHandle.addEventListener('touchstart', e => {
       touchStartY = e.touches[0].clientY;
       panel.style.transition = 'none';
     }, { passive: true });
+
     sheetHandle.addEventListener('touchmove', e => {
       if (touchStartY === null) return;
       const dy = e.touches[0].clientY - touchStartY;
-      const maxClose = window.innerHeight * 0.85 - 52;
-      const clampedY = Math.max(0, Math.min(maxClose, sheetOpen ? dy : maxClose + dy));
+      const peekPx = 56; // must match CSS transform offset
+      const maxClose = window.innerHeight * 0.85 - peekPx;
+      // When open: dy > 0 closes (moves down); when closed: dy < 0 opens (moves up)
+      const clampedY = sheetOpen
+        ? Math.max(0, Math.min(maxClose, dy))
+        : Math.max(-maxClose, Math.min(0, dy)) + maxClose;
       panel.style.transform = `translateY(${clampedY}px)`;
     }, { passive: true });
+
     sheetHandle.addEventListener('touchend', e => {
       if (touchStartY === null) return;
       const dy = e.changedTouches[0].clientY - touchStartY;
-      sheetOpen = dy < -30 || (sheetOpen && dy < 60);
+      // Open if dragged up >30px, close if dragged down >60px
+      if (!sheetOpen && dy < -30) sheetOpen = true;
+      else if (sheetOpen && dy > 60) sheetOpen = false;
       panel.style.transition = '';
       panel.style.transform = '';
       panel.classList.toggle('open', sheetOpen);
+      if (!sheetOpen) setTimeout(() => { panel.scrollTop = 0; }, 380);
       touchStartY = null;
     }, { passive: true });
   }
