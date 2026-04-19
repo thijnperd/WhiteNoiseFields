@@ -97,8 +97,25 @@
       --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
     }
 
+    /* Explicit minimal theme — same as :root defaults, needed for applyTheme('minimal') */
+    [data-theme="minimal"] {
+      --charcoal:    #2c3540;
+      --slate:       #6b7a88;
+      --light-gray:  #e4e8ec;
+      --mid-gray:    #c8cdd4;
+      --bg:          #eef0f3;
+      --panel-bg:    #ffffff;
+      --border:      #dde2e8;
+      --accent-soft: #f0f2f5;
+      --text:        #1a242c;
+      --text-muted:  #7a8a95;
+      --active-text: #ffffff;
+      --accent:      #2c3540;
+      --shadow:      0 2px 20px rgba(44,53,64,0.10);
+    }
+
     html, body {
-      height: 100%; min-height: 100dvh;
+      height: 100dvh;
       font-family: 'Syne', system-ui, sans-serif;
       font-size: 13px;
       background: var(--bg);
@@ -130,7 +147,7 @@
       letter-spacing: 0.12em; text-transform: uppercase;
       font-weight: 500;
     }
-    #mode-tabs { display: flex; gap: 3px; flex: 1; overflow: hidden; }
+    #mode-tabs { display: flex; gap: 3px; flex: 1; overflow: hidden; min-width: 0; }
     .mode-tab {
       display: flex; align-items: center; gap: 5px;
       padding: 5px 12px;
@@ -190,10 +207,10 @@
     }
 
     /* ═══════════ LAYOUT ═══════════ */
-    #layout { display: flex; padding-top: var(--topbar-h); height: 100vh; overflow: hidden; }
+    #layout { display: flex; padding-top: var(--topbar-h); height: 100dvh; overflow: clip; }
     #canvas-wrap {
       flex: 1; display: flex; align-items: center; justify-content: center;
-      height: calc(100vh - var(--topbar-h)); overflow: hidden; background: var(--bg);
+      height: 100%; overflow: hidden; background: var(--bg); min-width: 0;
     }
     #canvas-wrap canvas { display: block; box-shadow: var(--shadow); border-radius: 3px; max-width: 100%; max-height: 100%; }
     #canvas-wrap.att-mode { cursor: crosshair; }
@@ -201,7 +218,7 @@
     /* ═══════════ PANEL ═══════════ */
     #control-panel {
       width: var(--panel-w); flex-shrink: 0;
-      height: calc(100vh - var(--topbar-h));
+      height: 100%;
       overflow-y: auto; background: var(--panel-bg);
       border-left: 1px solid var(--border);
       padding: 0 0 40px;
@@ -582,8 +599,8 @@
   </nav>
   <div id="topbar-actions">
     <button id="btn-pause"     class="action-btn">⏸ Pause</button>
-    <button id="btn-clear"     class="action-btn">⟳ Clear</button>
-    <button id="btn-randomize" class="action-btn">⚂ Seed</button>
+    <button id="btn-clear"     class="action-btn">✕ Clear</button>
+    <button id="btn-randomize" class="action-btn">↺ Seed</button>
     <button id="btn-sound"     class="action-btn">♪ Sound</button>
     <span id="fps-display">-- fps</span>
   </div>
@@ -873,7 +890,7 @@
       </div>
       <div class="section-body">
         <div class="ctrl-row">
-          <label>Enable <span class="info" data-tip="Harmonic chord-based ambient music driven by the flow field. Each theme has its own progression, scale and timbre.">?</span></label>
+          <label>Enable <span class="info" data-tip="Harmonic chord-based ambient music driven by the flow field. Each theme has its own progression, scale and timbre. Sonic agents drift through the flow field and trigger notes when moved by it.">?</span></label>
           <div class="toggle-wrap">
             <button class="toggle" id="tog-sound"></button>
             <span class="toggle-label" id="lbl-sound-state">Off</span>
@@ -886,20 +903,128 @@
             <span class="val-badge" id="lbl-volume">0.50</span>
           </div>
         </div>
+        <div class="ctrl-row">
+          <label>Tempo (BPM) <span class="info" data-tip="Musical tempo. Notes snap to this grid. Affects density of harmonic events.">?</span></label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-bpm" min="30" max="180" step="1" value="72">
+            <span class="val-badge" id="lbl-bpm">72</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Texture <span class="info" data-tip="Note density. Low = sparse, meditative. High = busy, complex. Scales all voice trigger rates.">?</span></label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-texture" min="0.2" max="3.0" step="0.1" value="1.0">
+            <span class="val-badge" id="lbl-texture">1.0</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Reverb <span class="info" data-tip="Wet/dry mix of the reverb effect. Higher = more spacious and blurred.">?</span></label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-reverb" min="0" max="1" step="0.05" value="0.6">
+            <span class="val-badge" id="lbl-reverb">0.60</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Delay <span class="info" data-tip="Echo amount. Adds rhythmic delay echoes. 0 = dry. Theme must support delay.">?</span></label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-delay" min="0" max="1" step="0.05" value="0.3">
+            <span class="val-badge" id="lbl-delay">0.30</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Voicing <span class="info" data-tip="Chord spread. Auto follows theme. Close = tight cluster. Open = spread across 2 octaves. Wide = very spread, airy.">?</span></label>
+          <div class="btn-group" id="voicing-btns">
+            <button class="grp-btn active" data-voicing="0">Auto</button>
+            <button class="grp-btn"        data-voicing="1">Close</button>
+            <button class="grp-btn"        data-voicing="2">Open</button>
+            <button class="grp-btn"        data-voicing="3">Wide</button>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Melody <span class="info" data-tip="Enables a melodic voice that walks the scale with the flow. Adds floating single notes above the harmonic bed.">?</span></label>
+          <div class="toggle-wrap">
+            <button class="toggle" id="tog-melody"></button>
+            <span class="toggle-label" id="lbl-melody-state">Off</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Show Agents <span class="info" data-tip="Visualize the invisible sonic agents drifting through the field. Each color represents a voice role.">?</span></label>
+          <div class="toggle-wrap">
+            <button class="toggle" id="tog-show-agents"></button>
+            <span class="toggle-label" id="lbl-agents-state">Off</span>
+          </div>
+        </div>
         <div id="sound-palette" style="display:none;padding-top:2px">
-          <div style="font-size:10px;color:var(--text-muted);line-height:1.7">
+          <div style="font-size:10px;color:var(--text-muted);line-height:1.85;border-top:1px solid var(--light-gray);padding-top:8px;margin-top:4px">
             <div>Scale: <span id="lbl-sound-scale" style="font-weight:600;color:var(--charcoal)">—</span></div>
             <div>Chord: <span id="lbl-sound-chord" style="font-family:'JetBrains Mono',monospace;color:var(--charcoal)">—</span></div>
             <div>Timbre: <span id="lbl-sound-timbre" style="color:var(--charcoal)">—</span></div>
+            <div style="margin-top:4px;display:flex;align-items:center;gap:6px">
+              <span>Energy:</span>
+              <div id="energy-bar" style="flex:1;height:4px;background:var(--light-gray);border-radius:2px;overflow:hidden">
+                <div id="energy-fill" style="height:100%;width:0%;background:var(--accent);border-radius:2px;transition:width 0.4s ease"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 09 Export -->
+    <!-- 09 Wind & Forces -->
+    <section class="ctrl-section collapsed">
+      <div class="section-header">
+        <span><span class="sec-num">09</span>Wind & Forces</span><span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        <div class="ctrl-row">
+          <label>Wind <span class="info" data-tip="Adds a persistent directional bias to all flow vectors. Combines with the noise field.">?</span></label>
+          <div class="toggle-wrap">
+            <button class="toggle" id="tog-wind"></button>
+            <span class="toggle-label" id="lbl-wind-state">Off</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Wind Angle (°)</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-wind-angle" min="0" max="360" step="5" value="0">
+            <span class="val-badge" id="lbl-wind-angle">0°</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Wind Strength</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-wind-str" min="0" max="1" step="0.05" value="0.3">
+            <span class="val-badge" id="lbl-wind-str">0.30</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Gravity <span class="info" data-tip="Pulls particles downward. Negative = floats upward.">?</span></label>
+          <div class="toggle-wrap">
+            <button class="toggle" id="tog-gravity"></button>
+            <span class="toggle-label" id="lbl-gravity-state">Off</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Gravity Strength</label>
+          <div class="slider-wrap">
+            <input type="range" id="sl-gravity-str" min="-0.5" max="0.5" step="0.01" value="0.08">
+            <span class="val-badge" id="lbl-gravity-str">0.08</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <label>Turbulence Burst <span class="info" data-tip="Click canvas to detonate a turbulence burst at that point, scattering nearby particles.">?</span></label>
+          <div class="toggle-wrap">
+            <button class="toggle" id="tog-burst"></button>
+            <span class="toggle-label" id="lbl-burst-state">Off</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 Export -->
     <section class="ctrl-section">
       <div class="section-header">
-        <span><span class="sec-num">09</span>Export</span><span class="chevron">▾</span>
+        <span><span class="sec-num">10</span>Export</span><span class="chevron">▾</span>
       </div>
       <div class="section-body">
         <div class="exp-label">Image</div>
@@ -987,6 +1112,17 @@ let globalHue = 0;
 // Chord tracking
 let chordIndex = 0;
 let chordFrame = 0;
+
+// Wind & Forces
+let windEnabled  = false;
+let windAngle    = 0;
+let windStrength = 0.3;
+let gravityEnabled = false;
+let gravityStr   = 0.08;
+let burstMode    = false;
+
+// Sonic agent rendering
+let showSonicAgents = false;
 
 // ═══════════════════════════════════════════════════════
 //  COLOR UTILS
@@ -1154,19 +1290,28 @@ function draw() {
   // Build flow field
   let yoff = 0;
   const useCurl = curlMode || currentMode === 4;
+  const windRad = windAngle * Math.PI / 180;
+  const windVx = Math.cos(windRad) * windStrength;
+  const windVy = Math.sin(windRad) * windStrength;
   for (let y = 0; y < rows; y++) {
     let xoff = 0;
     for (let x = 0; x < cols; x++) {
       let zNoise = zoff + zoffTime + noiseZ;
       if (currentMode === 2 || currentMode === 3) zNoise += random(-0.0008, 0.0008);
       if (useCurl) {
-        flowField[x + y * cols] = curlVector(xoff, yoff, zNoise);
+        let cv = curlVector(xoff, yoff, zNoise);
+        if (windEnabled) { cv.x += windVx; cv.y += windVy; }
+        if (gravityEnabled) cv.y += gravityStr;
+        flowField[x + y * cols] = cv;
       } else {
         let angle = noise(xoff, yoff, zNoise) * TWO_PI * 2;
-        flowField[x + y * cols] = createVector(
+        let v = createVector(
           Math.cos(angle) * noiseStrength,
           Math.sin(angle) * noiseStrength
         );
+        if (windEnabled) { v.x += windVx; v.y += windVy; }
+        if (gravityEnabled) v.y += gravityStr;
+        flowField[x + y * cols] = v;
       }
       xoff += inc;
     }
@@ -1208,6 +1353,41 @@ function draw() {
     }
   }
 
+  // Render sonic agents (optional)
+  if (showSonicAgents && audioEnabled) {
+    const agentColors = [[0,180,100],[100,120,255],[255,140,50],[230,60,200]];
+    for (let i = 0; i < sonicAgents.length; i++) {
+      const a = sonicAgents[i];
+      const [cr,cg,cb] = agentColors[i];
+      noStroke(); fill(cr, cg, cb, 80);
+      ellipse(a.x, a.y, 18, 18);
+      stroke(cr, cg, cb, 180); strokeWeight(1.2); noFill();
+      ellipse(a.x, a.y, 28, 28);
+      // pulse ring when note fires
+      if (a.pulseTimer > 0) {
+        stroke(cr, cg, cb, 180 * (a.pulseTimer / 12));
+        strokeWeight(1.5);
+        ellipse(a.x, a.y, 28 + (12-a.pulseTimer)*3, 28 + (12-a.pulseTimer)*3);
+        a.pulseTimer--;
+      }
+    }
+  }
+
+  // Wind indicator arrow (top-right of canvas)
+  if (windEnabled) {
+    const ar = windAngle * Math.PI / 180;
+    const ax = 30, ay = 30;
+    const len = 18;
+    stroke(100, 160, 240, 160); strokeWeight(1.5); noFill();
+    const ex = ax + Math.cos(ar)*len, ey = ay + Math.sin(ar)*len;
+    line(ax, ay, ex, ey);
+    // arrowhead
+    let ah = ar + Math.PI * 0.8;
+    line(ex, ey, ex + Math.cos(ah)*6, ey + Math.sin(ah)*6);
+    ah = ar - Math.PI * 0.8;
+    line(ex, ey, ex + Math.cos(ah)*6, ey + Math.sin(ah)*6);
+  }
+
   document.getElementById('fps-display').textContent = floor(frameRate()) + ' fps';
   updateSonicAgents();
 }
@@ -1223,6 +1403,21 @@ function updateChordUI(theme, idx) {
 }
 
 function mousePressed() {
+  if (burstMode) {
+    if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
+    // Scatter nearby particles outward
+    for (let p of particles) {
+      let dx = p.pos.x - mouseX, dy = p.pos.y - mouseY;
+      let d = Math.sqrt(dx*dx + dy*dy);
+      if (d < 120 && d > 1) {
+        let force = (1 - d/120) * 4;
+        p.vel.add(createVector(dx/d * force, dy/d * force));
+      }
+    }
+    // Briefly scatter noise
+    noiseZ += random(50, 200);
+    return;
+  }
   if (!attractorMode) return;
   if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
   if (keyIsDown(SHIFT)) {
@@ -1347,143 +1542,174 @@ async function exportWallpaper(w, h, label) {
 
 // ═══════════════════════════════════════════════════════
 //  CHORD PROGRESSIONS — harmonic voice map per theme
-//  Each chord: [bassHz, mid1Hz, mid2Hz, sparkleHz]
+//  Each chord: [bassHz, mid1Hz, mid2Hz, sparkleHz, sub]
 // ═══════════════════════════════════════════════════════
 const CHORD_PROGRESSIONS = {
   // I – vi – IV – V (C Major, serene, resolving)
   minimal: {
     names: ['Cmaj', 'Amin', 'Fmaj', 'Gmaj'],
     chords: [
-      [65.41,  164.81, 196.00, 523.25],  // C2 E3 G3 C5
-      [55.00,  130.81, 164.81, 440.00],  // A1 C3 E3 A4
-      [87.31,  220.00, 261.63, 349.23],  // F2 A3 C4 F4
-      [98.00,  246.94, 293.66, 392.00],  // G2 B3 D4 G4
+      [65.41,  130.81, 164.81, 196.00, 523.25, 32.70],
+      [55.00,  110.00, 130.81, 164.81, 440.00, 27.50],
+      [87.31,  174.61, 220.00, 261.63, 349.23, 43.65],
+      [98.00,  196.00, 246.94, 293.66, 392.00, 49.00],
     ],
+    scale: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25], // C major
     dur: 240
   },
   // i – VII – VI – VII (D Natural Minor, cinematic)
   midnight: {
     names: ['Dmin', 'Cmaj', 'Bbmaj', 'Cmaj'],
     chords: [
-      [73.42,  174.61, 220.00, 293.66],  // D2 F3 A3 D4
-      [65.41,  164.81, 196.00, 329.63],  // C2 E3 G3 E4
-      [58.27,  146.83, 174.61, 233.08],  // Bb1 D3 F3 Bb3
-      [65.41,  196.00, 261.63, 392.00],  // C2 G3 C4 G4
+      [73.42,  146.83, 174.61, 220.00, 293.66, 36.71],
+      [65.41,  130.81, 164.81, 196.00, 329.63, 32.70],
+      [58.27,  116.54, 146.83, 174.61, 233.08, 29.14],
+      [65.41,  130.81, 196.00, 261.63, 392.00, 32.70],
     ],
+    scale: [293.66, 329.63, 349.23, 392.00, 440.00, 466.16, 523.25, 587.33], // D natural minor
     dur: 300
   },
   // i – bIII – bVII – IV (D Minor Pentatonic, driving)
   neon: {
     names: ['Dmin', 'Fmaj', 'Cmaj', 'Gmin'],
     chords: [
-      [73.42,  220.00, 293.66, 440.00],  // D2 A3 D4 A4
-      [87.31,  174.61, 261.63, 523.25],  // F2 F3 C4 C5
-      [65.41,  196.00, 261.63, 392.00],  // C2 G3 C4 G4
-      [98.00,  146.83, 196.00, 587.33],  // G2 D3 G3 D5
+      [73.42,  146.83, 220.00, 293.66, 440.00, 36.71],
+      [87.31,  174.61, 261.63, 349.23, 523.25, 43.65],
+      [65.41,  130.81, 196.00, 261.63, 392.00, 32.70],
+      [98.00,  196.00, 293.66, 392.00, 587.33, 49.00],
     ],
+    scale: [293.66, 329.63, 349.23, 392.00, 440.00, 523.25, 587.33, 622.25], // D minor pentatonic+
     dur: 148
   },
   // I – II – IV – I (F Lydian, floating, expansive)
   ocean: {
     names: ['Fmaj', 'Gmaj', 'Bbmaj', 'Fmaj'],
     chords: [
-      [87.31,  174.61, 220.00, 349.23],  // F2 F3 A3 F4
-      [98.00,  196.00, 246.94, 392.00],  // G2 G3 B3 G4
-      [116.54, 233.08, 293.66, 466.16],  // Bb2 Bb3 D4 Bb4
-      [87.31,  220.00, 349.23, 440.00],  // F2 A3 F4 A4
+      [87.31,  174.61, 220.00, 277.18, 349.23, 43.65],
+      [98.00,  196.00, 246.94, 329.63, 392.00, 49.00],
+      [116.54, 233.08, 293.66, 369.99, 466.16, 58.27],
+      [87.31,  174.61, 220.00, 349.23, 440.00, 43.65],
     ],
+    scale: [349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.26, 698.46], // F lydian
     dur: 340
   },
   // I – bVII – IV – I (C Mixolydian, warm, modal)
   desert: {
     names: ['Cmaj', 'Bbmaj', 'Fmaj', 'Cmaj'],
     chords: [
-      [65.41,  164.81, 196.00, 261.63],  // C2 E3 G3 C4
-      [58.27,  146.83, 174.61, 233.08],  // Bb1 D3 F3 Bb3
-      [87.31,  174.61, 220.00, 349.23],  // F2 F3 A3 F4
-      [65.41,  196.00, 261.63, 523.25],  // C2 G3 C4 C5
+      [65.41,  130.81, 164.81, 196.00, 261.63, 32.70],
+      [58.27,  116.54, 146.83, 174.61, 233.08, 29.14],
+      [87.31,  174.61, 220.00, 261.63, 349.23, 43.65],
+      [65.41,  130.81, 196.00, 261.63, 523.25, 32.70],
     ],
+    scale: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 466.16, 523.25], // C mixolydian
     dur: 260
   }
 };
 
 // ═══════════════════════════════════════════════════════
-//  AUDIO ENGINE — Tone.js chord-based harmony
+//  AUDIO ENGINE — Tone.js chord-based harmony v2
 // ═══════════════════════════════════════════════════════
 let audioEnabled    = false;
 let audioReady      = false;
 let masterVolume    = 0.5;
 let currentAudioTheme = null;
 let toneNodes       = null;
+let audioBPM        = 72;
+let audioTexture    = 1.0;
+let audioReverbWet  = 0.6;
+let audioDelayWet   = 0.3;
+let audioVoicing    = 0; // 0=auto,1=close,2=open,3=wide
+let melodyEnabled   = false;
 
 const sonicAgents = [
-  { x:400, y:450, vx:0, vy:0, timer:0,   noteInterval:220, role:'bass'    },
-  { x:200, y:300, vx:0, vy:0, timer:50,  noteInterval:140, role:'mid1'    },
-  { x:600, y:300, vx:0, vy:0, timer:90,  noteInterval:155, role:'mid2'    },
-  { x:400, y:150, vx:0, vy:0, timer:120, noteInterval:68,  role:'sparkle' },
+  { x:400, y:450, vx:0, vy:0, timer:0,   noteInterval:220, role:'bass',    pulseTimer:0 },
+  { x:200, y:300, vx:0, vy:0, timer:50,  noteInterval:140, role:'mid1',    pulseTimer:0 },
+  { x:600, y:300, vx:0, vy:0, timer:90,  noteInterval:155, role:'mid2',    pulseTimer:0 },
+  { x:400, y:150, vx:0, vy:0, timer:120, noteInterval:68,  role:'sparkle', pulseTimer:0 },
 ];
+let melodyAgent = { x:300, y:200, vx:0, vy:0, timer:0, noteInterval:55 };
 
 const THEME_AUDIO = {
   minimal: {
     scaleName: 'C Major · I–vi–IV–V',
     timbreName: 'Fattriangle pads · Soft reverb',
-    bass:    { type:'sine',         attack:2.2, release:9.0,  vol:-12 },
-    mid:     { type:'fattriangle',  attack:3.0, release:8.0,  vol:-18, count:2, spread:10 },
-    sparkle: { type:'triangle',     attack:0.6, release:3.0,  vol:-22 },
+    bass:    { type:'sine',         attack:2.2,  release:9.0,  vol:-12 },
+    sub:     { type:'sine',         attack:3.5,  release:12.0, vol:-20 },
+    mid:     { type:'fattriangle',  attack:3.0,  release:8.0,  vol:-18, count:2, spread:10 },
+    sparkle: { type:'triangle',     attack:0.6,  release:3.0,  vol:-22 },
+    melody:  { type:'sine',         attack:0.4,  release:2.5,  vol:-24 },
     filter:  { freq:4800, q:0.6 },
     reverb:  { decay:3.5, wet:0.52 },
     delay:   null,
     speedFactors: [0.6, 0.9, 0.9, 1.8],
-    noteDur: [5.5, 3.5, 3.5, 1.2],
+    noteDur: [5.5, 3.5, 3.5, 1.2, 0.8],
   },
   midnight: {
     scaleName: 'D Natural Minor · i–VII–VI–VII',
     timbreName: 'Fatsawtooth · Long reverb · Echo',
-    bass:    { type:'sine',         attack:2.8, release:10.0, vol:-11 },
-    mid:     { type:'fatsawtooth',  attack:4.0, release:9.0,  vol:-20, count:3, spread:14 },
-    sparkle: { type:'sine',         attack:1.2, release:4.5,  vol:-25 },
+    bass:    { type:'sine',         attack:2.8,  release:10.0, vol:-11 },
+    sub:     { type:'sine',         attack:4.5,  release:14.0, vol:-19 },
+    mid:     { type:'fatsawtooth',  attack:4.0,  release:9.0,  vol:-20, count:3, spread:14 },
+    sparkle: { type:'sine',         attack:1.2,  release:4.5,  vol:-25 },
+    melody:  { type:'triangle',     attack:0.8,  release:3.5,  vol:-26 },
     filter:  { freq:1100, q:2.2 },
     reverb:  { decay:9.5, wet:0.80 },
     delay:   { time:0.38, feedback:0.36, wet:0.35 },
     speedFactors: [0.45, 0.7, 0.7, 1.3],
-    noteDur: [7.0, 5.0, 5.0, 2.0],
+    noteDur: [7.0, 5.0, 5.0, 2.0, 1.2],
   },
   neon: {
     scaleName: 'D Minor Pentatonic · i–bIII–bVII–IV',
     timbreName: 'Fatsquare · Resonant filter · Delay',
-    bass:    { type:'square',       attack:0.06, release:1.5, vol:-14 },
-    mid:     { type:'fatsquare',    attack:0.2,  release:2.0, vol:-20, count:2, spread:8 },
-    sparkle: { type:'square',       attack:0.03, release:0.8, vol:-24 },
+    bass:    { type:'square',       attack:0.06, release:1.5,  vol:-14 },
+    sub:     { type:'sine',         attack:0.5,  release:3.0,  vol:-18 },
+    mid:     { type:'fatsquare',    attack:0.2,  release:2.0,  vol:-20, count:2, spread:8 },
+    sparkle: { type:'square',       attack:0.03, release:0.8,  vol:-24 },
+    melody:  { type:'sawtooth',     attack:0.05, release:0.5,  vol:-26 },
     filter:  { freq:2400, q:6.5 },
     reverb:  { decay:1.6, wet:0.42 },
     delay:   { time:0.125, feedback:0.44, wet:0.30 },
     speedFactors: [1.1, 1.7, 1.7, 2.8],
-    noteDur: [1.5, 1.0, 1.0, 0.3],
+    noteDur: [1.5, 1.0, 1.0, 0.3, 0.2],
   },
   ocean: {
     scaleName: 'F Lydian · I–II–IV–I',
     timbreName: 'Fattriangle · Oceanic reverb · Delay',
-    bass:    { type:'sine',         attack:3.5, release:12.0, vol:-12 },
-    mid:     { type:'fattriangle',  attack:4.5, release:11.0, vol:-18, count:3, spread:12 },
-    sparkle: { type:'triangle',     attack:2.0, release:5.5,  vol:-22 },
+    bass:    { type:'sine',         attack:3.5,  release:12.0, vol:-12 },
+    sub:     { type:'sine',         attack:5.0,  release:16.0, vol:-20 },
+    mid:     { type:'fattriangle',  attack:4.5,  release:11.0, vol:-18, count:3, spread:12 },
+    sparkle: { type:'triangle',     attack:2.0,  release:5.5,  vol:-22 },
+    melody:  { type:'sine',         attack:1.5,  release:4.0,  vol:-25 },
     filter:  { freq:5800, q:0.35 },
     reverb:  { decay:13.0, wet:0.85 },
     delay:   { time:0.33, feedback:0.26, wet:0.22 },
     speedFactors: [0.40, 0.65, 0.65, 1.2],
-    noteDur: [9.0, 6.0, 6.0, 3.0],
+    noteDur: [9.0, 6.0, 6.0, 3.0, 2.0],
   },
   desert: {
     scaleName: 'C Mixolydian · I–bVII–IV–I',
     timbreName: 'Fatsawtooth · Warm filter · Echo',
-    bass:    { type:'sine',         attack:1.8, release:6.0,  vol:-11 },
-    mid:     { type:'fatsawtooth',  attack:2.5, release:7.0,  vol:-18, count:2, spread:10 },
-    sparkle: { type:'triangle',     attack:0.9, release:3.5,  vol:-22 },
+    bass:    { type:'sine',         attack:1.8,  release:6.0,  vol:-11 },
+    sub:     { type:'sine',         attack:3.0,  release:8.0,  vol:-20 },
+    mid:     { type:'fatsawtooth',  attack:2.5,  release:7.0,  vol:-18, count:2, spread:10 },
+    sparkle: { type:'triangle',     attack:0.9,  release:3.5,  vol:-22 },
+    melody:  { type:'triangle',     attack:0.7,  release:2.0,  vol:-25 },
     filter:  { freq:2800, q:1.6 },
     reverb:  { decay:5.0, wet:0.60 },
     delay:   { time:0.48, feedback:0.20, wet:0.18 },
     speedFactors: [0.60, 0.95, 0.95, 1.75],
-    noteDur: [4.5, 3.0, 3.0, 1.5],
+    noteDur: [4.5, 3.0, 3.0, 1.5, 1.0],
   },
+};
+
+// Voicing multiplier tables: [bass, mid1, mid2, sparkle, sub]
+// multipliers applied to chord base frequencies
+const VOICINGS = {
+  0: null, // auto = use theme defaults (no change)
+  1: [1, 2, 2.5, 4, 0.5],       // Close — all clustered near same octave
+  2: [1, 2, 4, 8, 0.5],          // Open — spread by octaves
+  3: [0.5, 1, 2, 8, 0.25],       // Wide — very spread, airy
 };
 
 function getActiveSoundTheme() {
@@ -1493,6 +1719,8 @@ function getActiveSoundTheme() {
 async function initAudio() {
   if (audioReady) return;
   await Tone.start();
+  Tone.Transport.bpm.value = audioBPM;
+  Tone.Transport.start();
   rebuildAudioNodes();
   audioReady = true;
   resetSonicAgents();
@@ -1501,9 +1729,10 @@ async function initAudio() {
 function rebuildAudioNodes() {
   if (toneNodes) {
     try {
-      ['bass','mid1','mid2','sparkle','bassPan','mid1Pan','mid2Pan','sparklePan',
-       'filter','reverb','delay','master'].forEach(k => {
-        if (toneNodes[k]) toneNodes[k].dispose();
+      ['bass','sub','mid1','mid2','sparkle','melody',
+       'bassPan','subPan','mid1Pan','mid2Pan','sparklePan','melodyPan',
+       'chorus','filter','reverb','delay','comp','master'].forEach(k => {
+        if (toneNodes[k]) { try { toneNodes[k].dispose(); } catch(e) {} }
       });
     } catch(e) {}
   }
@@ -1512,13 +1741,17 @@ function rebuildAudioNodes() {
   const cfg   = THEME_AUDIO[theme] || THEME_AUDIO.minimal;
   currentAudioTheme = theme;
 
-  const reverb = new Tone.Reverb({ decay: cfg.reverb.decay, wet: cfg.reverb.wet });
-  reverb.toDestination();
+  // Master chain: comp → filter → delay? → reverb → destination
+  const comp = new Tone.Compressor({ threshold: -24, ratio: 4, attack: 0.005, release: 0.1 });
+  comp.toDestination();
+
+  const reverb = new Tone.Reverb({ decay: cfg.reverb.decay, wet: audioReverbWet });
+  reverb.connect(comp);
 
   let delayNode = null;
   if (cfg.delay) {
     delayNode = new Tone.FeedbackDelay({
-      delayTime: cfg.delay.time, feedback: cfg.delay.feedback, wet: cfg.delay.wet
+      delayTime: cfg.delay.time, feedback: cfg.delay.feedback, wet: audioDelayWet
     });
     delayNode.connect(reverb);
   }
@@ -1526,13 +1759,20 @@ function rebuildAudioNodes() {
   const filter = new Tone.Filter({ frequency: cfg.filter.freq, type: 'lowpass', Q: cfg.filter.q });
   filter.connect(cfg.delay ? delayNode : reverb);
 
+  // Chorus for mid voices (subtle)
+  const chorus = new Tone.Chorus({ frequency: 1.5, delayTime: 3.5, depth: 0.4, wet: 0.35 });
+  chorus.start();
+  chorus.connect(filter);
+
   const master = new Tone.Volume(Tone.gainToDb(masterVolume));
   master.connect(filter);
 
   const bassPan    = new Tone.Panner(0).connect(master);
-  const mid1Pan    = new Tone.Panner(-0.5).connect(master);
-  const mid2Pan    = new Tone.Panner(0.5).connect(master);
+  const subPan     = new Tone.Panner(0).connect(master);
+  const mid1Pan    = new Tone.Panner(-0.5).connect(chorus);
+  const mid2Pan    = new Tone.Panner(0.5).connect(chorus);
   const sparklePan = new Tone.Panner(0).connect(master);
+  const melodyPan  = new Tone.Panner(0).connect(filter);
 
   function makePoly(oscType, env, vol, dest, extraOpts) {
     const oscDef = { type: oscType };
@@ -1547,18 +1787,21 @@ function rebuildAudioNodes() {
   const midExtra = cfg.mid.count ? { count: cfg.mid.count, spread: cfg.mid.spread } : undefined;
 
   const bass    = makePoly(cfg.bass.type,    cfg.bass,    cfg.bass.vol,    bassPan);
+  const sub     = makePoly('sine',           cfg.sub,     cfg.sub.vol,     subPan);
   const mid1    = makePoly(cfg.mid.type,     cfg.mid,     cfg.mid.vol,     mid1Pan, midExtra);
   const mid2    = makePoly(cfg.mid.type,     cfg.mid,     cfg.mid.vol - 2, mid2Pan, midExtra);
   const sparkle = makePoly(cfg.sparkle.type, cfg.sparkle, cfg.sparkle.vol, sparklePan);
+  const melody  = makePoly(cfg.melody.type,  cfg.melody,  cfg.melody.vol,  melodyPan);
 
-  toneNodes = { bass, mid1, mid2, sparkle, bassPan, mid1Pan, mid2Pan, sparklePan,
-                filter, reverb, delay: delayNode, master, cfg };
+  toneNodes = { bass, sub, mid1, mid2, sparkle, melody,
+                bassPan, subPan, mid1Pan, mid2Pan, sparklePan, melodyPan,
+                chorus, filter, reverb, delay: delayNode, comp, master, cfg };
 
-  // Sync agent intervals from theme
-  const defaults = [220, 140, 155, 68];
-  sonicAgents.forEach((a, i) => {
-    a.noteInterval = Math.round(defaults[i] * (1 / (THEME_AUDIO[theme].speedFactors[i] || 1)));
-  });
+  // Sync BPM
+  Tone.Transport.bpm.value = audioBPM;
+
+  // Sync agent intervals from theme and BPM
+  syncAgentIntervals(cfg, theme);
 
   // Update panel labels
   const e1 = document.getElementById('lbl-sound-scale');
@@ -1571,6 +1814,18 @@ function rebuildAudioNodes() {
   updateChordUI(theme, chordIndex);
 }
 
+function syncAgentIntervals(cfg, theme) {
+  const defaults = [220, 140, 155, 68];
+  const bpmFactor = 72 / audioBPM; // normalize to base BPM=72
+  sonicAgents.forEach((a, i) => {
+    const sf = THEME_AUDIO[theme].speedFactors[i] || 1;
+    a.noteInterval = Math.round(defaults[i] * (1 / sf) * bpmFactor / audioTexture);
+    a.noteInterval = Math.max(8, a.noteInterval);
+  });
+  // Melody fires ~2x sparkle rate
+  melodyAgent.noteInterval = Math.max(6, Math.round(45 * bpmFactor / audioTexture));
+}
+
 function resetSonicAgents() {
   const w = width || canvasWidth, h = height || canvasHeight;
   const starts = [[0.5,0.75],[0.25,0.5],[0.75,0.5],[0.5,0.25]];
@@ -1578,7 +1833,19 @@ function resetSonicAgents() {
     a.x = w * starts[i][0]; a.y = h * starts[i][1];
     a.vx = 0; a.vy = 0;
     a.timer = i * 18;
+    a.pulseTimer = 0;
   });
+  melodyAgent.x = w * 0.4; melodyAgent.y = h * 0.4;
+  melodyAgent.vx = 0; melodyAgent.vy = 0; melodyAgent.timer = 10;
+}
+
+// Compute voiced chord frequencies based on voicing mode
+function getVoicedChord(chord, voicing) {
+  if (voicing === 0 || !VOICINGS[voicing]) return chord; // auto = raw
+  const mults = VOICINGS[voicing];
+  // Use chord[0] as root, apply multipliers
+  const root = chord[0];
+  return mults.map(m => root * m);
 }
 
 function updateSonicAgents() {
@@ -1592,14 +1859,17 @@ function updateSonicAgents() {
   const synths = [toneNodes.bass, toneNodes.mid1, toneNodes.mid2, toneNodes.sparkle];
   const pans   = [toneNodes.bassPan, toneNodes.mid1Pan, toneNodes.mid2Pan, toneNodes.sparklePan];
   const prog   = CHORD_PROGRESSIONS[theme];
-  const chord  = prog.chords[chordIndex];
-  const roles  = ['bass','mid1','mid2','sparkle'];
+  const rawChord = prog.chords[chordIndex];
+  const chord  = getVoicedChord(rawChord, audioVoicing);
+  const scale  = prog.scale;
 
+  const W = width || canvasWidth, H = height || canvasHeight;
+
+  // ── Move & trigger main 4 agents ──
   for (let i = 0; i < sonicAgents.length; i++) {
     const a     = sonicAgents[i];
     const speed = cfg.speedFactors[i] * maxSpeedVal;
 
-    // Follow flow field
     let xi = Math.max(0, Math.min(cols - 1, Math.floor(a.x / scl)));
     let yi = Math.max(0, Math.min(rows - 1, Math.floor(a.y / scl)));
     const f = flowField[xi + yi * cols];
@@ -1612,42 +1882,104 @@ function updateSonicAgents() {
     a.x += a.vx; a.y += a.vy;
     a.vx *= 0.92; a.vy *= 0.92;
 
-    const W = width || canvasWidth, H = height || canvasHeight;
     if (a.x < 0) a.x += W; if (a.x > W) a.x -= W;
     if (a.y < 0) a.y += H; if (a.y > H) a.y -= H;
 
     pans[i].pan.rampTo(((a.x / W) * 2 - 1) * 0.75, 0.9);
 
-    // Trigger note using CHORD TONE for this voice role
     a.timer++;
     if (a.timer >= a.noteInterval) {
       a.timer = 0;
+      a.pulseTimer = 12;
 
-      // Get the chord-designated frequency for this voice
-      let freq = chord[i]; // chord[0]=bass, [1]=mid1, [2]=mid2, [3]=sparkle
-
-      // Slight Y-position octave modulation (±1 octave based on vertical position)
-      // This adds melodic movement while preserving harmonic identity
+      let freq = chord[i] !== undefined ? chord[i] : rawChord[i];
       const yFrac = 1 - (a.y / H);
-      if (i === 3 && yFrac > 0.7) {
-        freq *= 2; // sparkle goes up an octave near the top
-      } else if (i === 0 && yFrac < 0.2) {
-        freq *= 0.5; // bass drops an octave near the bottom
-      }
+      // Y-position octave modulation (more musical range)
+      if (i === 3 && yFrac > 0.7)       freq *= 2;
+      else if (i === 3 && yFrac < 0.3)  freq *= 0.5;
+      else if (i === 0 && yFrac < 0.2)  freq *= 0.5;
+      else if (i === 1 && yFrac > 0.75) freq *= 2;
 
-      const dur = cfg.noteDur[i] + (Math.random() * 0.5 - 0.25);
-      try { synths[i].triggerAttackRelease(freq, Math.max(0.1, dur)); } catch(e) {}
+      // Dynamics: velocity ∝ particle density near agent
+      let nearCount = 0;
+      for (let p of particles) {
+        if (Math.hypot(p.pos.x - a.x, p.pos.y - a.y) < 80) nearCount++;
+      }
+      const dynVol = Math.min(0, -2 + nearCount * 0.08); // louder when particles are nearby
+      try {
+        synths[i].set({ volume: cfg[['bass','mid','mid','sparkle'][i]].vol + dynVol });
+        const dur = cfg.noteDur[i] + (Math.random() * 0.4 - 0.2);
+        synths[i].triggerAttackRelease(freq, Math.max(0.08, dur));
+      } catch(e) {}
     }
   }
 
-  // Modulate filter & reverb based on flow busyness
+  // ── Sub-bass (slow, sparse) ──
+  if (toneNodes.sub) {
+    // sub fires at 1/3 rate of bass agent
+    const ba = sonicAgents[0];
+    if (ba.timer === 0) { // fires same frame as bass
+      if (Math.random() < 0.35) { // sparse
+        const subFreq = (chord[5] !== undefined ? chord[5] : rawChord[5] || rawChord[0]*0.5);
+        try { toneNodes.sub.triggerAttackRelease(subFreq, cfg.noteDur[0] * 1.5); } catch(e) {}
+      }
+    }
+  }
+
+  // ── Melody voice (scale-walking) ──
+  if (melodyEnabled && toneNodes.melody && scale) {
+    let mxi = Math.max(0, Math.min(cols - 1, Math.floor(melodyAgent.x / scl)));
+    let myi = Math.max(0, Math.min(rows - 1, Math.floor(melodyAgent.y / scl)));
+    const mf = flowField[mxi + myi * cols];
+    if (mf) {
+      melodyAgent.vx += mf.x * 1.6;
+      melodyAgent.vy += mf.y * 1.6;
+      let mag = Math.hypot(melodyAgent.vx, melodyAgent.vy);
+      if (mag > maxSpeedVal * 2) {
+        melodyAgent.vx = melodyAgent.vx / mag * maxSpeedVal * 2;
+        melodyAgent.vy = melodyAgent.vy / mag * maxSpeedVal * 2;
+      }
+    }
+    melodyAgent.x += melodyAgent.vx; melodyAgent.y += melodyAgent.vy;
+    melodyAgent.vx *= 0.88; melodyAgent.vy *= 0.88;
+    if (melodyAgent.x < 0) melodyAgent.x += W; if (melodyAgent.x > W) melodyAgent.x -= W;
+    if (melodyAgent.y < 0) melodyAgent.y += H; if (melodyAgent.y > H) melodyAgent.y -= H;
+
+    toneNodes.melodyPan.pan.rampTo(((melodyAgent.x / W) * 2 - 1) * 0.6, 0.6);
+
+    melodyAgent.timer++;
+    if (melodyAgent.timer >= melodyAgent.noteInterval) {
+      melodyAgent.timer = 0;
+      // Pick scale note based on X position
+      const scaleIdx = Math.floor((melodyAgent.x / W) * scale.length) % scale.length;
+      // Add some randomness: sometimes step up/down
+      const step = Math.random() < 0.3 ? Math.floor(Math.random()*3)-1 : 0;
+      const finalIdx = Math.max(0, Math.min(scale.length-1, scaleIdx + step));
+      // Octave shift by Y position
+      const yFrac = 1 - (melodyAgent.y / H);
+      let mFreq = scale[finalIdx];
+      if (yFrac > 0.65) mFreq *= 2;
+      else if (yFrac < 0.25) mFreq *= 0.5;
+      try { toneNodes.melody.triggerAttackRelease(mFreq, cfg.noteDur[4] || 0.8); } catch(e) {}
+    }
+  }
+
+  // ── Modulate filter & reverb based on flow busyness ──
   const avgVx = sonicAgents.reduce((s,a)=>s+a.vx,0)/4;
   const avgVy = sonicAgents.reduce((s,a)=>s+a.vy,0)/4;
   const variance = sonicAgents.reduce((s,a)=>s+Math.hypot(a.vx-avgVx,a.vy-avgVy),0)/4;
   const busyness = Math.min(1, variance / (maxSpeedVal * 2));
-  toneNodes.filter.frequency.rampTo(Math.min(cfg.filter.freq * 1.8, Math.max(200,
-    cfg.filter.freq * (0.55 + busyness * 0.9))), 3.5);
-  toneNodes.reverb.wet.rampTo(Math.min(0.95, cfg.reverb.wet + busyness * 0.12), 5.0);
+
+  toneNodes.filter.frequency.rampTo(
+    Math.min(cfg.filter.freq * 2.2, Math.max(180, cfg.filter.freq * (0.45 + busyness * 1.1))), 3.0
+  );
+  toneNodes.reverb.wet.rampTo(
+    Math.min(0.97, audioReverbWet + busyness * 0.1), 4.5
+  );
+
+  // ── Energy display ──
+  const energyEl = document.getElementById('energy-fill');
+  if (energyEl) energyEl.style.width = Math.round(busyness * 100) + '%';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1748,7 +2080,7 @@ function updateSonicAgents() {
       $('sound-palette').style.display = 'none';
       document.getElementById('chord-strip').classList.remove('show');
       if (toneNodes) {
-        try { ['bass','mid1','mid2','sparkle'].forEach(k => toneNodes[k].releaseAll()); } catch(e) {}
+        try { ['bass','sub','mid1','mid2','sparkle','melody'].forEach(k => { if(toneNodes[k]) toneNodes[k].releaseAll(); }); } catch(e) {}
       }
     }
   }
@@ -1760,6 +2092,91 @@ function updateSonicAgents() {
     lbl('lbl-volume', masterVolume.toFixed(2));
     if (toneNodes && toneNodes.master)
       toneNodes.master.volume.rampTo(Tone.gainToDb(masterVolume), 0.3);
+  });
+
+  $('sl-bpm').addEventListener('input', function() {
+    audioBPM = +this.value;
+    lbl('lbl-bpm', audioBPM);
+    if (audioReady) Tone.Transport.bpm.value = audioBPM;
+    if (toneNodes) syncAgentIntervals(toneNodes.cfg, getActiveSoundTheme());
+  });
+
+  $('sl-texture').addEventListener('input', function() {
+    audioTexture = +this.value;
+    lbl('lbl-texture', audioTexture.toFixed(1));
+    if (toneNodes) syncAgentIntervals(toneNodes.cfg, getActiveSoundTheme());
+  });
+
+  $('sl-reverb').addEventListener('input', function() {
+    audioReverbWet = +this.value;
+    lbl('lbl-reverb', audioReverbWet.toFixed(2));
+    if (toneNodes && toneNodes.reverb)
+      toneNodes.reverb.wet.rampTo(audioReverbWet, 0.5);
+  });
+
+  $('sl-delay').addEventListener('input', function() {
+    audioDelayWet = +this.value;
+    lbl('lbl-delay', audioDelayWet.toFixed(2));
+    if (toneNodes && toneNodes.delay)
+      toneNodes.delay.wet.rampTo(audioDelayWet, 0.5);
+  });
+
+  document.querySelectorAll('#voicing-btns .grp-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#voicing-btns .grp-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      audioVoicing = +btn.dataset.voicing;
+    });
+  });
+
+  $('tog-melody').addEventListener('click', function() {
+    melodyEnabled = !melodyEnabled;
+    this.classList.toggle('on', melodyEnabled);
+    lbl('lbl-melody-state', melodyEnabled ? 'On' : 'Off');
+  });
+
+  $('tog-show-agents').addEventListener('click', function() {
+    showSonicAgents = !showSonicAgents;
+    this.classList.toggle('on', showSonicAgents);
+    lbl('lbl-agents-state', showSonicAgents ? 'On' : 'Off');
+  });
+
+  // ── Wind & Forces ──
+  $('tog-wind').addEventListener('click', function() {
+    windEnabled = !windEnabled;
+    this.classList.toggle('on', windEnabled);
+    lbl('lbl-wind-state', windEnabled ? 'On' : 'Off');
+  });
+  $('sl-wind-angle').addEventListener('input', function() {
+    windAngle = +this.value;
+    lbl('lbl-wind-angle', windAngle + '°');
+  });
+  $('sl-wind-str').addEventListener('input', function() {
+    windStrength = +this.value;
+    lbl('lbl-wind-str', windStrength.toFixed(2));
+  });
+  $('tog-gravity').addEventListener('click', function() {
+    gravityEnabled = !gravityEnabled;
+    this.classList.toggle('on', gravityEnabled);
+    lbl('lbl-gravity-state', gravityEnabled ? 'On' : 'Off');
+  });
+  $('sl-gravity-str').addEventListener('input', function() {
+    gravityStr = +this.value;
+    lbl('lbl-gravity-str', gravityStr.toFixed(2));
+  });
+  $('tog-burst').addEventListener('click', function() {
+    burstMode = !burstMode;
+    attractorMode = false;
+    if (burstMode) attractorMode = false;
+    this.classList.toggle('on', burstMode);
+    lbl('lbl-burst-state', burstMode ? 'On (click canvas)' : 'Off');
+    $('canvas-wrap').classList.toggle('att-mode', burstMode);
+    // disable attractor when burst active
+    $('tog-att').classList.toggle('on', false);
+    lbl('lbl-att-state', 'Off');
+    $('att-hint').style.display = burstMode ? 'block' : 'none';
+    if (burstMode) $('att-hint').textContent = 'Click canvas to burst · Scatter nearby particles';
+    else $('att-hint').textContent = 'Click canvas to place attractor · Shift+click to remove';
   });
 
   // ── Canvas ──
