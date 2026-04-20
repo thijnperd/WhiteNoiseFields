@@ -90,14 +90,12 @@
       --shadow:      0 2px 16px rgba(118,58,28,0.12);
     }
 
-    /* ═══════════ EASING CURVES (Emil: always custom curves, never browser defaults) ═══════════ */
     :root {
       --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
       --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
       --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
     }
 
-    /* Explicit minimal theme — same as :root defaults, needed for applyTheme('minimal') */
     [data-theme="minimal"] {
       --charcoal:    #2c3540;
       --slate:       #6b7a88;
@@ -147,6 +145,7 @@
       letter-spacing: 0.12em; text-transform: uppercase;
       font-weight: 500;
     }
+
     /* ── Mode dropdown ── */
     #mode-dropdown { position: relative; flex-shrink: 0; }
 
@@ -184,7 +183,6 @@
       list-style: none; padding: 4px;
       z-index: 200; min-width: 150px;
       transform-origin: top left;
-      /* enter state */
       opacity: 0; transform: scale(0.95) translateY(-4px);
       pointer-events: none;
       transition: opacity 160ms var(--ease-out),
@@ -214,6 +212,7 @@
     }
     .mode-icon { font-size: 13px; line-height: 1; }
 
+    /* ── Desktop topbar actions ── */
     #topbar-actions { display: flex; align-items: center; gap: 5px; margin-left: 12px; flex-shrink: 0; }
     .action-btn {
       padding: 5px 11px;
@@ -232,6 +231,75 @@
     .action-btn.active { background: var(--charcoal); border-color: var(--charcoal); color: var(--active-text); }
     #btn-sound.active  { background: #1e7a4a; border-color: #1e7a4a; color: #fff; }
 
+    /* ── Mobile overflow menu ── */
+    #mobile-overflow {
+      display: none;
+      position: relative;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+    #mobile-overflow-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px;
+      border: 1px solid var(--border); background: transparent;
+      border-radius: 4px; font-size: 18px; font-weight: 700;
+      color: var(--slate); cursor: pointer;
+      transition: background 120ms var(--ease-out), color 120ms var(--ease-out),
+                  border-color 120ms var(--ease-out), transform 100ms var(--ease-out);
+      touch-action: manipulation;
+      letter-spacing: -1px;
+      padding: 0;
+      line-height: 1;
+    }
+    #mobile-overflow-btn:active { transform: scale(0.92); background: var(--accent-soft); }
+
+    #mobile-overflow-menu {
+      position: absolute; top: calc(100% + 6px); right: 0;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow), 0 10px 28px rgba(0,0,0,0.14);
+      padding: 5px;
+      z-index: 500;
+      min-width: 160px;
+      transform-origin: top right;
+      opacity: 0; transform: scale(0.93) translateY(-6px);
+      pointer-events: none;
+      transition: opacity 170ms var(--ease-out), transform 170ms var(--ease-out);
+    }
+    #mobile-overflow[aria-expanded="true"] #mobile-overflow-menu {
+      opacity: 1; transform: scale(1) translateY(0);
+      pointer-events: auto;
+    }
+    .mob-action {
+      display: flex; align-items: center; gap: 9px;
+      width: 100%; padding: 10px 12px;
+      border: none; background: transparent;
+      border-radius: 5px;
+      font-size: 12px; font-weight: 600;
+      font-family: 'Syne', sans-serif;
+      color: var(--slate); cursor: pointer;
+      text-align: left;
+      transition: background 100ms var(--ease-out), color 100ms var(--ease-out);
+      touch-action: manipulation;
+      white-space: nowrap;
+    }
+    .mob-action:active { background: var(--accent-soft); }
+    .mob-action.active { color: var(--charcoal); font-weight: 700; }
+    .mob-action.sound-active { color: #1e7a4a; font-weight: 700; }
+    .mob-action-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--mid-gray); flex-shrink: 0;
+      transition: background 150ms var(--ease-out);
+    }
+    .mob-action.active .mob-action-dot { background: var(--charcoal); }
+    .mob-action.sound-active .mob-action-dot { background: #1e7a4a; }
+    .mob-action-divider {
+      height: 1px; background: var(--light-gray);
+      margin: 4px 0;
+    }
+
+    /* ── Theme bar ── */
     #theme-bar {
       display: flex; align-items: center; gap: 6px;
       margin-left: 12px; padding-left: 12px;
@@ -274,7 +342,6 @@
     }
     #control-panel::-webkit-scrollbar { width: 3px; }
     #control-panel::-webkit-scrollbar-thumb { background: var(--mid-gray); border-radius: 2px; }
-    /* Mobile-only handle */
     #sheet-handle { display: none; }
 
     .ctrl-section { border-bottom: 1px solid var(--light-gray); }
@@ -301,7 +368,7 @@
       font-size: 11px; font-weight: 600; color: var(--charcoal); letter-spacing: 0.01em;
     }
 
-    /* sliders with fill track */
+    /* sliders */
     .slider-wrap { display: flex; align-items: center; gap: 8px; }
     input[type="range"] {
       flex: 1; height: 3px; -webkit-appearance: none; appearance: none;
@@ -505,21 +572,33 @@
 
     /* ═══════════ MOBILE ═══════════ */
     @media (max-width: 767px) {
-      :root { --topbar-h: 48px; --panel-w: 100%; }
+      :root { --topbar-h: 52px; --panel-w: 100%; }
 
-      #topbar { padding: 0 10px; gap: 5px; }
-      #title-block { margin-right: 0; }
+      #topbar { padding: 0 10px; gap: 6px; }
+
+      /* Title: hide subtitle, tighten */
       #app-sub { display: none; }
-      #mode-tabs { display: none; }
+      #title-block { margin-right: 0; }
+
+      /* Mode trigger: icon + chevron only — no text label */
+      #mode-trigger-label { display: none; }
+      .mode-trigger {
+        min-width: unset;
+        padding: 0 9px;
+        width: 40px; height: 36px;
+        justify-content: center;
+        gap: 4px;
+      }
+      .mode-trigger-chevron { margin-left: 0; font-size: 8px; }
+      .mode-icon { font-size: 15px; }
+
+      /* Desktop actions hidden, mobile overflow shown */
+      #topbar-actions { display: none; }
       #theme-bar { display: none; }
       #fps-display { display: none; }
+      #mobile-overflow { display: flex; align-items: center; margin-left: auto; }
 
-      /* Larger tap targets for topbar action buttons on mobile */
-      .action-btn {
-        padding: 7px 10px;
-        min-height: 36px;
-      }
-
+      /* Panel becomes bottom sheet */
       #layout { display: block; padding-top: var(--topbar-h); }
       #canvas-wrap {
         width: 100%;
@@ -531,7 +610,6 @@
         object-fit: contain; border-radius: 0; box-shadow: none;
       }
 
-      /* Panel becomes bottom sheet */
       #control-panel {
         position: fixed;
         bottom: 0; left: 0; right: 0;
@@ -543,14 +621,11 @@
         border-top: 1px solid var(--border);
         box-shadow: 0 -8px 40px rgba(0,0,0,0.18);
         transform: translateY(calc(100% - 56px));
-        /* FIX: iOS-tuned drawer easing for satisfying open/close */
         transition: transform 380ms var(--ease-drawer);
         z-index: 300;
         padding-top: 0;
-        /* FIX: Enable smooth scrolling of panel content on iOS */
         overflow-y: scroll;
         -webkit-overflow-scrolling: touch;
-        /* FIX: Contain scroll within panel, don't let it bubble to canvas */
         overscroll-behavior: contain;
       }
       #control-panel.open { transform: translateY(0); }
@@ -559,9 +634,7 @@
         display: flex; flex-direction: column; align-items: center;
         padding: 10px 16px 8px; cursor: pointer; user-select: none; flex-shrink: 0;
         gap: 5px;
-        /* Prevent handle drag from triggering canvas underneath */
         touch-action: none;
-        /* Sticky so it stays visible while scrolling */
         position: sticky; top: 0;
         background: var(--panel-bg);
         z-index: 1;
@@ -589,18 +662,34 @@
         border-bottom: 1px solid var(--light-gray); margin-bottom: 4px;
       }
 
-      /* Larger tap targets for section headers on mobile */
-      .section-header { padding: 13px 16px; }
+      /* Larger touch targets for section headers */
+      .section-header { padding: 14px 16px; min-height: 48px; }
 
-      /* Larger tap targets for toggle buttons on mobile */
+      /* Larger toggle targets */
       .toggle { width: 40px; height: 22px; }
       .toggle::after { width: 16px; height: 16px; }
       .toggle.on::after { left: 21px; }
 
+      /* Larger step buttons for touch */
+      .step-btn { width: 40px; height: 40px; font-size: 16px; }
+
+      /* Larger grp-btn touch targets */
+      .grp-btn { padding: 8px 12px; font-size: 10.5px; }
+
+      /* Larger full-btns */
+      .full-btn { padding: 12px 12px; font-size: 12px; }
+
+      /* Larger exp-btn */
+      .exp-btn { padding: 11px 8px; }
+
+      /* Color picker */
+      input[type="color"] { width: 38px; height: 32px; }
+
       #chord-strip { display: none !important; }
     }
+
     @media (min-width: 768px) {
-      #mobile-mode-row, #mobile-theme-row { display: none; }
+      #mobile-mode-row, #mobile-theme-row, #mobile-overflow { display: none; }
     }
 
     /* Respect reduced-motion preference */
@@ -627,6 +716,7 @@
     <span id="app-title">Flow Field</span>
     <span id="app-sub">generative art</span>
   </div>
+
   <div id="mode-dropdown" aria-haspopup="listbox" aria-expanded="false">
     <button id="mode-trigger" class="mode-trigger" aria-label="Select flow field style">
       <span class="mode-icon" id="mode-trigger-icon">⟿</span>
@@ -641,6 +731,8 @@
       <li class="mode-option"        role="option" aria-selected="false" data-mode="4"><span class="mode-icon">∿</span> Fluid</li>
     </ul>
   </div>
+
+  <!-- Desktop action buttons -->
   <div id="topbar-actions">
     <button id="btn-pause"     class="action-btn">⏸ Pause</button>
     <button id="btn-clear"     class="action-btn">✕ Clear</button>
@@ -648,6 +740,27 @@
     <button id="btn-sound"     class="action-btn">♪ Sound</button>
     <span id="fps-display">-- fps</span>
   </div>
+
+  <!-- Mobile overflow menu (⋮) -->
+  <div id="mobile-overflow" aria-haspopup="true" aria-expanded="false">
+    <button id="mobile-overflow-btn" aria-label="More actions">⋮</button>
+    <div id="mobile-overflow-menu" role="menu">
+      <button class="mob-action" id="mob-btn-pause" role="menuitem">
+        <span class="mob-action-dot"></span>⏸ Pause
+      </button>
+      <button class="mob-action" id="mob-btn-clear" role="menuitem">
+        <span class="mob-action-dot" style="background:transparent"></span>✕ Clear
+      </button>
+      <button class="mob-action" id="mob-btn-randomize" role="menuitem">
+        <span class="mob-action-dot" style="background:transparent"></span>↺ New Seed
+      </button>
+      <div class="mob-action-divider"></div>
+      <button class="mob-action" id="mob-btn-sound" role="menuitem">
+        <span class="mob-action-dot"></span>♪ Sound
+      </button>
+    </div>
+  </div>
+
   <div id="theme-bar">
     <span id="theme-bar-label">Theme</span>
     <div class="theme-dot active" data-theme="minimal"  style="background:#2c3540" title="Minimal"></div>
@@ -1202,7 +1315,7 @@ function getStrokeColor(p, alpha) {
 }
 
 // ═══════════════════════════════════════════════════════
-//  CURL NOISE — divergence-free vortex flow
+//  CURL NOISE
 // ═══════════════════════════════════════════════════════
 function curlVector(xn, yn, zn) {
   const e = 0.08;
@@ -1331,7 +1444,6 @@ function draw() {
     rect(0, 0, width, height);
   }
 
-  // Build flow field
   let yoff = 0;
   const useCurl = curlMode || currentMode === 4;
   const windRad = windAngle * Math.PI / 180;
@@ -1369,7 +1481,6 @@ function draw() {
 
   globalHue = (globalHue + 0.4) % 360;
 
-  // Advance chord
   chordFrame++;
   const theme = getActiveSoundTheme();
   const prog  = CHORD_PROGRESSIONS[theme];
@@ -1397,7 +1508,6 @@ function draw() {
     }
   }
 
-  // Render sonic agents (optional)
   if (showSonicAgents && audioEnabled) {
     const agentColors = [[0,180,100],[100,120,255],[255,140,50],[230,60,200]];
     for (let i = 0; i < sonicAgents.length; i++) {
@@ -1407,7 +1517,6 @@ function draw() {
       ellipse(a.x, a.y, 18, 18);
       stroke(cr, cg, cb, 180); strokeWeight(1.2); noFill();
       ellipse(a.x, a.y, 28, 28);
-      // pulse ring when note fires
       if (a.pulseTimer > 0) {
         stroke(cr, cg, cb, 180 * (a.pulseTimer / 12));
         strokeWeight(1.5);
@@ -1417,7 +1526,6 @@ function draw() {
     }
   }
 
-  // Wind indicator arrow (top-right of canvas)
   if (windEnabled) {
     const ar = windAngle * Math.PI / 180;
     const ax = 30, ay = 30;
@@ -1425,7 +1533,6 @@ function draw() {
     stroke(100, 160, 240, 160); strokeWeight(1.5); noFill();
     const ex = ax + Math.cos(ar)*len, ey = ay + Math.sin(ar)*len;
     line(ax, ay, ex, ey);
-    // arrowhead
     let ah = ar + Math.PI * 0.8;
     line(ex, ey, ex + Math.cos(ah)*6, ey + Math.sin(ah)*6);
     ah = ar - Math.PI * 0.8;
@@ -1449,7 +1556,6 @@ function updateChordUI(theme, idx) {
 function mousePressed() {
   if (burstMode) {
     if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
-    // Scatter nearby particles outward
     for (let p of particles) {
       let dx = p.pos.x - mouseX, dy = p.pos.y - mouseY;
       let d = Math.sqrt(dx*dx + dy*dy);
@@ -1458,7 +1564,6 @@ function mousePressed() {
         p.vel.add(createVector(dx/d * force, dy/d * force));
       }
     }
-    // Briefly scatter noise
     noiseZ += random(50, 200);
     return;
   }
@@ -1475,11 +1580,6 @@ function mousePressed() {
 }
 
 function touchStarted() {
-  // ⚠️ CRITICAL: never return false here when not in attractor mode.
-  // p5's touchStarted() returning false calls e.preventDefault() on the
-  // canvas touch event. On iOS this blocks synthetic click events from
-  // firing on *all* elements (including fixed-positioned panel buttons),
-  // because iOS hit-tests the underlying canvas even for overlaid elements.
   if (!attractorMode) return true;
   let cnv = document.querySelector('#canvas-wrap canvas');
   if (!cnv) return true;
@@ -1491,13 +1591,11 @@ function touchStarted() {
   if (tx < 0 || tx > width || ty < 0 || ty > height) return true;
   attractors.push({ x: tx, y: ty, str: attractorStr, rad: attractorRad });
   document.getElementById('lbl-att-count').textContent = attractors.length;
-  // Only prevent default when we actually handle an attractor placement
-  // (prevents accidental page scroll while placing attractors on canvas)
   return false;
 }
 
 // ═══════════════════════════════════════════════════════
-//  EXPORT — PNG / VIDEO / WALLPAPER
+//  EXPORT
 // ═══════════════════════════════════════════════════════
 let isRecording  = false;
 let mediaRecorder = null;
@@ -1566,17 +1664,13 @@ function stopRecording() {
 async function exportWallpaper(w, h, label) {
   const prevW = canvasWidth, prevH = canvasHeight;
   showToast(`Rendering ${label} wallpaper (3s)…`, 4000);
-
   canvasWidth = w; canvasHeight = h;
   resizeCanvas(w, h);
   initGrid();
   clearCanvas();
-
   await new Promise(r => setTimeout(r, 3200));
-
   pixelDensity(1);
   saveCanvas(`wallpaper-${label.replace(/\s+/g,'-')}`, 'png');
-
   canvasWidth = prevW; canvasHeight = prevH;
   resizeCanvas(prevW, prevH);
   initGrid();
@@ -1585,11 +1679,9 @@ async function exportWallpaper(w, h, label) {
 }
 
 // ═══════════════════════════════════════════════════════
-//  CHORD PROGRESSIONS — harmonic voice map per theme
-//  Each chord: [bassHz, mid1Hz, mid2Hz, sparkleHz, sub]
+//  CHORD PROGRESSIONS
 // ═══════════════════════════════════════════════════════
 const CHORD_PROGRESSIONS = {
-  // I – vi – IV – V (C Major, serene, resolving)
   minimal: {
     names: ['Cmaj', 'Amin', 'Fmaj', 'Gmaj'],
     chords: [
@@ -1598,10 +1690,9 @@ const CHORD_PROGRESSIONS = {
       [87.31,  174.61, 220.00, 261.63, 349.23, 43.65],
       [98.00,  196.00, 246.94, 293.66, 392.00, 49.00],
     ],
-    scale: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25], // C major
+    scale: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25],
     dur: 240
   },
-  // i – VII – VI – VII (D Natural Minor, cinematic)
   midnight: {
     names: ['Dmin', 'Cmaj', 'Bbmaj', 'Cmaj'],
     chords: [
@@ -1610,10 +1701,9 @@ const CHORD_PROGRESSIONS = {
       [58.27,  116.54, 146.83, 174.61, 233.08, 29.14],
       [65.41,  130.81, 196.00, 261.63, 392.00, 32.70],
     ],
-    scale: [293.66, 329.63, 349.23, 392.00, 440.00, 466.16, 523.25, 587.33], // D natural minor
+    scale: [293.66, 329.63, 349.23, 392.00, 440.00, 466.16, 523.25, 587.33],
     dur: 300
   },
-  // i – bIII – bVII – IV (D Minor Pentatonic, driving)
   neon: {
     names: ['Dmin', 'Fmaj', 'Cmaj', 'Gmin'],
     chords: [
@@ -1622,10 +1712,9 @@ const CHORD_PROGRESSIONS = {
       [65.41,  130.81, 196.00, 261.63, 392.00, 32.70],
       [98.00,  196.00, 293.66, 392.00, 587.33, 49.00],
     ],
-    scale: [293.66, 329.63, 349.23, 392.00, 440.00, 523.25, 587.33, 622.25], // D minor pentatonic+
+    scale: [293.66, 329.63, 349.23, 392.00, 440.00, 523.25, 587.33, 622.25],
     dur: 148
   },
-  // I – II – IV – I (F Lydian, floating, expansive)
   ocean: {
     names: ['Fmaj', 'Gmaj', 'Bbmaj', 'Fmaj'],
     chords: [
@@ -1634,10 +1723,9 @@ const CHORD_PROGRESSIONS = {
       [116.54, 233.08, 293.66, 369.99, 466.16, 58.27],
       [87.31,  174.61, 220.00, 349.23, 440.00, 43.65],
     ],
-    scale: [349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.26, 698.46], // F lydian
+    scale: [349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.26, 698.46],
     dur: 340
   },
-  // I – bVII – IV – I (C Mixolydian, warm, modal)
   desert: {
     names: ['Cmaj', 'Bbmaj', 'Fmaj', 'Cmaj'],
     chords: [
@@ -1646,13 +1734,13 @@ const CHORD_PROGRESSIONS = {
       [87.31,  174.61, 220.00, 261.63, 349.23, 43.65],
       [65.41,  130.81, 196.00, 261.63, 523.25, 32.70],
     ],
-    scale: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 466.16, 523.25], // C mixolydian
+    scale: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 466.16, 523.25],
     dur: 260
   }
 };
 
 // ═══════════════════════════════════════════════════════
-//  AUDIO ENGINE — Tone.js chord-based harmony v2
+//  AUDIO ENGINE
 // ═══════════════════════════════════════════════════════
 let audioEnabled    = false;
 let audioReady      = false;
@@ -1663,7 +1751,7 @@ let audioBPM        = 72;
 let audioTexture    = 1.0;
 let audioReverbWet  = 0.6;
 let audioDelayWet   = 0.3;
-let audioVoicing    = 0; // 0=auto,1=close,2=open,3=wide
+let audioVoicing    = 0;
 let melodyEnabled   = false;
 
 const sonicAgents = [
@@ -1747,13 +1835,11 @@ const THEME_AUDIO = {
   },
 };
 
-// Voicing multiplier tables: [bass, mid1, mid2, sparkle, sub]
-// multipliers applied to chord base frequencies
 const VOICINGS = {
-  0: null, // auto = use theme defaults (no change)
-  1: [1, 2, 2.5, 4, 0.5],       // Close — all clustered near same octave
-  2: [1, 2, 4, 8, 0.5],          // Open — spread by octaves
-  3: [0.5, 1, 2, 8, 0.25],       // Wide — very spread, airy
+  0: null,
+  1: [1, 2, 2.5, 4, 0.5],
+  2: [1, 2, 4, 8, 0.5],
+  3: [0.5, 1, 2, 8, 0.25],
 };
 
 function getActiveSoundTheme() {
@@ -1785,7 +1871,6 @@ function rebuildAudioNodes() {
   const cfg   = THEME_AUDIO[theme] || THEME_AUDIO.minimal;
   currentAudioTheme = theme;
 
-  // Master chain: comp → filter → delay? → reverb → destination
   const comp = new Tone.Compressor({ threshold: -24, ratio: 4, attack: 0.005, release: 0.1 });
   comp.toDestination();
 
@@ -1803,7 +1888,6 @@ function rebuildAudioNodes() {
   const filter = new Tone.Filter({ frequency: cfg.filter.freq, type: 'lowpass', Q: cfg.filter.q });
   filter.connect(cfg.delay ? delayNode : reverb);
 
-  // Chorus for mid voices (subtle)
   const chorus = new Tone.Chorus({ frequency: 1.5, delayTime: 3.5, depth: 0.4, wet: 0.35 });
   chorus.start();
   chorus.connect(filter);
@@ -1841,32 +1925,26 @@ function rebuildAudioNodes() {
                 bassPan, subPan, mid1Pan, mid2Pan, sparklePan, melodyPan,
                 chorus, filter, reverb, delay: delayNode, comp, master, cfg };
 
-  // Sync BPM
   Tone.Transport.bpm.value = audioBPM;
-
-  // Sync agent intervals from theme and BPM
   syncAgentIntervals(cfg, theme);
 
-  // Update panel labels
   const e1 = document.getElementById('lbl-sound-scale');
   const e2 = document.getElementById('lbl-sound-timbre');
   if (e1) e1.textContent = cfg.scaleName;
   if (e2) e2.textContent = cfg.timbreName;
 
-  // Show chord strip
   document.getElementById('chord-strip').classList.add('show');
   updateChordUI(theme, chordIndex);
 }
 
 function syncAgentIntervals(cfg, theme) {
   const defaults = [220, 140, 155, 68];
-  const bpmFactor = 72 / audioBPM; // normalize to base BPM=72
+  const bpmFactor = 72 / audioBPM;
   sonicAgents.forEach((a, i) => {
     const sf = THEME_AUDIO[theme].speedFactors[i] || 1;
     a.noteInterval = Math.round(defaults[i] * (1 / sf) * bpmFactor / audioTexture);
     a.noteInterval = Math.max(8, a.noteInterval);
   });
-  // Melody fires ~2x sparkle rate
   melodyAgent.noteInterval = Math.max(6, Math.round(45 * bpmFactor / audioTexture));
 }
 
@@ -1883,11 +1961,9 @@ function resetSonicAgents() {
   melodyAgent.vx = 0; melodyAgent.vy = 0; melodyAgent.timer = 10;
 }
 
-// Compute voiced chord frequencies based on voicing mode
 function getVoicedChord(chord, voicing) {
-  if (voicing === 0 || !VOICINGS[voicing]) return chord; // auto = raw
+  if (voicing === 0 || !VOICINGS[voicing]) return chord;
   const mults = VOICINGS[voicing];
-  // Use chord[0] as root, apply multipliers
   const root = chord[0];
   return mults.map(m => root * m);
 }
@@ -1909,7 +1985,6 @@ function updateSonicAgents() {
 
   const W = width || canvasWidth, H = height || canvasHeight;
 
-  // ── Move & trigger main 4 agents ──
   for (let i = 0; i < sonicAgents.length; i++) {
     const a     = sonicAgents[i];
     const speed = cfg.speedFactors[i] * maxSpeedVal;
@@ -1938,18 +2013,16 @@ function updateSonicAgents() {
 
       let freq = chord[i] !== undefined ? chord[i] : rawChord[i];
       const yFrac = 1 - (a.y / H);
-      // Y-position octave modulation (more musical range)
       if (i === 3 && yFrac > 0.7)       freq *= 2;
       else if (i === 3 && yFrac < 0.3)  freq *= 0.5;
       else if (i === 0 && yFrac < 0.2)  freq *= 0.5;
       else if (i === 1 && yFrac > 0.75) freq *= 2;
 
-      // Dynamics: velocity ∝ particle density near agent
       let nearCount = 0;
       for (let p of particles) {
         if (Math.hypot(p.pos.x - a.x, p.pos.y - a.y) < 80) nearCount++;
       }
-      const dynVol = Math.min(0, -2 + nearCount * 0.08); // louder when particles are nearby
+      const dynVol = Math.min(0, -2 + nearCount * 0.08);
       try {
         synths[i].set({ volume: cfg[['bass','mid','mid','sparkle'][i]].vol + dynVol });
         const dur = cfg.noteDur[i] + (Math.random() * 0.4 - 0.2);
@@ -1958,19 +2031,16 @@ function updateSonicAgents() {
     }
   }
 
-  // ── Sub-bass (slow, sparse) ──
   if (toneNodes.sub) {
-    // sub fires at 1/3 rate of bass agent
     const ba = sonicAgents[0];
-    if (ba.timer === 0) { // fires same frame as bass
-      if (Math.random() < 0.35) { // sparse
+    if (ba.timer === 0) {
+      if (Math.random() < 0.35) {
         const subFreq = (chord[5] !== undefined ? chord[5] : rawChord[5] || rawChord[0]*0.5);
         try { toneNodes.sub.triggerAttackRelease(subFreq, cfg.noteDur[0] * 1.5); } catch(e) {}
       }
     }
   }
 
-  // ── Melody voice (scale-walking) ──
   if (melodyEnabled && toneNodes.melody && scale) {
     let mxi = Math.max(0, Math.min(cols - 1, Math.floor(melodyAgent.x / scl)));
     let myi = Math.max(0, Math.min(rows - 1, Math.floor(melodyAgent.y / scl)));
@@ -1994,12 +2064,9 @@ function updateSonicAgents() {
     melodyAgent.timer++;
     if (melodyAgent.timer >= melodyAgent.noteInterval) {
       melodyAgent.timer = 0;
-      // Pick scale note based on X position
       const scaleIdx = Math.floor((melodyAgent.x / W) * scale.length) % scale.length;
-      // Add some randomness: sometimes step up/down
       const step = Math.random() < 0.3 ? Math.floor(Math.random()*3)-1 : 0;
       const finalIdx = Math.max(0, Math.min(scale.length-1, scaleIdx + step));
-      // Octave shift by Y position
       const yFrac = 1 - (melodyAgent.y / H);
       let mFreq = scale[finalIdx];
       if (yFrac > 0.65) mFreq *= 2;
@@ -2008,7 +2075,6 @@ function updateSonicAgents() {
     }
   }
 
-  // ── Modulate filter & reverb based on flow busyness ──
   const avgVx = sonicAgents.reduce((s,a)=>s+a.vx,0)/4;
   const avgVy = sonicAgents.reduce((s,a)=>s+a.vy,0)/4;
   const variance = sonicAgents.reduce((s,a)=>s+Math.hypot(a.vx-avgVx,a.vy-avgVy),0)/4;
@@ -2021,7 +2087,6 @@ function updateSonicAgents() {
     Math.min(0.97, audioReverbWet + busyness * 0.1), 4.5
   );
 
-  // ── Energy display ──
   const energyEl = document.getElementById('energy-fill');
   if (energyEl) energyEl.style.width = Math.round(busyness * 100) + '%';
 }
@@ -2033,7 +2098,7 @@ function updateSonicAgents() {
   const $ = id => document.getElementById(id);
   const lbl = (id, v) => { let e = $(id); if (e) e.textContent = v; };
 
-  // ── Slider fill helper ──
+  // ── Slider fill ──
   function fillSlider(slider) {
     const min = +slider.min, max = +slider.max, val = +slider.value;
     const pct = Math.round((val - min) / (max - min) * 100);
@@ -2057,10 +2122,8 @@ function updateSonicAgents() {
 
   function setMode(mode) {
     currentMode = mode;
-    // update trigger label
     $('mode-trigger-icon').textContent  = MODES[mode].icon;
     $('mode-trigger-label').textContent = MODES[mode].label;
-    // update active state in list
     document.querySelectorAll('.mode-option').forEach(opt => {
       const active = +opt.dataset.mode === mode;
       opt.classList.toggle('active', active);
@@ -2068,30 +2131,80 @@ function updateSonicAgents() {
     });
     $('row-zoff').style.display = (mode === 2 || mode === 3) ? 'flex' : 'none';
     if (mode === 4) { curlMode = false; }
-    closeDropdown();
+    closeModeDropdown();
   }
 
-  function openDropdown()  { modeDropdown.setAttribute('aria-expanded', 'true'); }
-  function closeDropdown() { modeDropdown.setAttribute('aria-expanded', 'false'); }
-  function toggleDropdown(){ modeDropdown.getAttribute('aria-expanded') === 'true' ? closeDropdown() : openDropdown(); }
+  function closeModeDropdown() { modeDropdown.setAttribute('aria-expanded', 'false'); }
+  function toggleModeDropdown(){ modeDropdown.getAttribute('aria-expanded') === 'true' ? closeModeDropdown() : modeDropdown.setAttribute('aria-expanded', 'true'); }
 
-  modeTrigger.addEventListener('click', e => { e.stopPropagation(); toggleDropdown(); });
+  modeTrigger.addEventListener('click', e => { e.stopPropagation(); toggleModeDropdown(); closeMobileOverflow(); });
   document.querySelectorAll('.mode-option').forEach(opt => {
     opt.addEventListener('click', () => setMode(+opt.dataset.mode));
   });
-  // Close when clicking outside
   document.addEventListener('click', e => {
-    if (!modeDropdown.contains(e.target)) closeDropdown();
+    if (!modeDropdown.contains(e.target)) closeModeDropdown();
   });
-  // Keyboard support
   modeTrigger.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDropdown(); }
-    if (e.key === 'Escape') closeDropdown();
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleModeDropdown(); }
+    if (e.key === 'Escape') closeModeDropdown();
   });
 
-  // Build mobile mode tabs (now just a no-op since dropdown handles both breakpoints)
+  // ── Mobile overflow menu ──
+  const mobileOverflow = $('mobile-overflow');
+  const mobileOverflowBtn = $('mobile-overflow-btn');
 
-  // Build mobile theme row
+  function openMobileOverflow()  { mobileOverflow.setAttribute('aria-expanded', 'true'); }
+  function closeMobileOverflow() { mobileOverflow.setAttribute('aria-expanded', 'false'); }
+  function toggleMobileOverflow() {
+    mobileOverflow.getAttribute('aria-expanded') === 'true' ? closeMobileOverflow() : openMobileOverflow();
+  }
+
+  mobileOverflowBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    toggleMobileOverflow();
+    closeModeDropdown();
+  });
+  document.addEventListener('click', e => {
+    if (!mobileOverflow.contains(e.target)) closeMobileOverflow();
+  });
+
+  // Sync mobile menu visual state
+  function syncMobileOverflow() {
+    const pauseBtn = $('mob-btn-pause');
+    const soundBtn = $('mob-btn-sound');
+    if (pauseBtn) {
+      pauseBtn.classList.toggle('active', paused);
+      pauseBtn.querySelector('.mob-action-dot').style.background = paused ? 'var(--charcoal)' : 'var(--mid-gray)';
+      pauseBtn.childNodes[1].textContent = paused ? '▶ Play' : '⏸ Pause';
+    }
+    if (soundBtn) {
+      soundBtn.classList.toggle('sound-active', audioEnabled);
+      soundBtn.querySelector('.mob-action-dot').style.background = audioEnabled ? '#1e7a4a' : 'var(--mid-gray)';
+      soundBtn.childNodes[1].textContent = audioEnabled ? '♪ Sound On' : '♪ Sound';
+    }
+  }
+
+  // Wire mobile menu items → call underlying button handlers
+  $('mob-btn-pause').addEventListener('click', () => {
+    $('btn-pause').click();
+    syncMobileOverflow();
+    closeMobileOverflow();
+  });
+  $('mob-btn-clear').addEventListener('click', () => {
+    $('btn-clear').click();
+    closeMobileOverflow();
+  });
+  $('mob-btn-randomize').addEventListener('click', () => {
+    $('btn-randomize').click();
+    closeMobileOverflow();
+  });
+  $('mob-btn-sound').addEventListener('click', () => {
+    $('btn-sound').click();
+    syncMobileOverflow();
+    closeMobileOverflow();
+  });
+
+  // ── Mobile theme row ──
   const mobilThemeEl = $('mobile-theme-row');
   [['minimal','#2c3540'],['midnight','#0e1520'],['neon','linear-gradient(135deg,#0a0a0a 50%,#00e87a 50%)'],
    ['ocean','#0a3560'],['desert','#763a1c']].forEach(([t, bg]) => {
@@ -2114,7 +2227,7 @@ function updateSonicAgents() {
     dot.addEventListener('click', () => applyTheme(dot.dataset.theme));
   });
 
-  // ── Collapse ──
+  // ── Collapse sections ──
   document.querySelectorAll('.section-header').forEach(hdr => {
     hdr.addEventListener('click', () => hdr.closest('.ctrl-section').classList.toggle('collapsed'));
   });
@@ -2124,6 +2237,7 @@ function updateSonicAgents() {
     paused = !paused;
     $('btn-pause').textContent = paused ? '▶ Play' : '⏸ Pause';
     $('btn-pause').classList.toggle('active', paused);
+    syncMobileOverflow();
   });
   $('btn-clear').addEventListener('click', clearCanvas);
   $('btn-randomize').addEventListener('click', () => { randomizeNoise(); noiseDetail(noiseOctaves, 0.5); });
@@ -2149,6 +2263,7 @@ function updateSonicAgents() {
         try { ['bass','sub','mid1','mid2','sparkle','melody'].forEach(k => { if(toneNodes[k]) toneNodes[k].releaseAll(); }); } catch(e) {}
       }
     }
+    syncMobileOverflow();
   }
   $('tog-sound').addEventListener('click', toggleSound);
   $('btn-sound').addEventListener('click', toggleSound);
@@ -2237,7 +2352,6 @@ function updateSonicAgents() {
     this.classList.toggle('on', burstMode);
     lbl('lbl-burst-state', burstMode ? 'On (click canvas)' : 'Off');
     $('canvas-wrap').classList.toggle('att-mode', burstMode);
-    // disable attractor when burst active
     $('tog-att').classList.toggle('on', false);
     lbl('lbl-att-state', 'Off');
     $('att-hint').style.display = burstMode ? 'block' : 'none';
@@ -2333,7 +2447,6 @@ function updateSonicAgents() {
   $('btn-export').addEventListener('click',    () => saveCanvas('flow-field', 'png'));
   $('btn-export-hi').addEventListener('click', () => { pixelDensity(2); saveCanvas('flow-field-2x', 'png'); pixelDensity(1); });
 
-  // Video
   document.querySelectorAll('#rec-dur-btns .grp-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#rec-dur-btns .grp-btn').forEach(b => b.classList.remove('active'));
@@ -2343,7 +2456,6 @@ function updateSonicAgents() {
   });
   $('btn-record').addEventListener('click', startVideoExport);
 
-  // Wallpaper
   document.querySelectorAll('.wp-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const w = +btn.dataset.w, h = +btn.dataset.h;
@@ -2390,16 +2502,13 @@ function updateSonicAgents() {
     sheetHandle.addEventListener('click', () => {
       sheetOpen = !sheetOpen;
       panel.classList.toggle('open', sheetOpen);
-      // Reset scroll position when closing so handle peek looks clean
       if (!sheetOpen) setTimeout(() => { panel.scrollTop = 0; }, 380);
     });
-    // Close sheet when tapping outside (on canvas)
     document.getElementById('canvas-wrap').addEventListener('touchstart', () => {
       if (sheetOpen) { sheetOpen = false; panel.classList.remove('open'); }
     }, { passive: true });
   }
 
-  // Drag-to-open sheet (only from the handle, not panel content)
   let touchStartY = null;
   if (sheetHandle) {
     sheetHandle.addEventListener('touchstart', e => {
@@ -2410,9 +2519,8 @@ function updateSonicAgents() {
     sheetHandle.addEventListener('touchmove', e => {
       if (touchStartY === null) return;
       const dy = e.touches[0].clientY - touchStartY;
-      const peekPx = 56; // must match CSS transform offset
+      const peekPx = 56;
       const maxClose = window.innerHeight * 0.85 - peekPx;
-      // When open: dy > 0 closes (moves down); when closed: dy < 0 opens (moves up)
       const clampedY = sheetOpen
         ? Math.max(0, Math.min(maxClose, dy))
         : Math.max(-maxClose, Math.min(0, dy)) + maxClose;
@@ -2422,7 +2530,6 @@ function updateSonicAgents() {
     sheetHandle.addEventListener('touchend', e => {
       if (touchStartY === null) return;
       const dy = e.changedTouches[0].clientY - touchStartY;
-      // Open if dragged up >30px, close if dragged down >60px
       if (!sheetOpen && dy < -30) sheetOpen = true;
       else if (sheetOpen && dy > 60) sheetOpen = false;
       panel.style.transition = '';
@@ -2436,6 +2543,7 @@ function updateSonicAgents() {
   // Initial sync
   syncColorModeUI();
   updateChordUI(getActiveSoundTheme(), 0);
+  syncMobileOverflow();
 })();
 </script>
 </body>
