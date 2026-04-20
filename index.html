@@ -746,7 +746,7 @@
     <button id="mobile-overflow-btn" aria-label="More actions">⋮</button>
     <div id="mobile-overflow-menu" role="menu">
       <button class="mob-action" id="mob-btn-pause" role="menuitem">
-        <span class="mob-action-dot"></span>⏸ Pause
+        <span class="mob-action-dot"></span><span class="mob-label">⏸ Pause</span>
       </button>
       <button class="mob-action" id="mob-btn-clear" role="menuitem">
         <span class="mob-action-dot" style="background:transparent"></span>✕ Clear
@@ -756,7 +756,7 @@
       </button>
       <div class="mob-action-divider"></div>
       <button class="mob-action" id="mob-btn-sound" role="menuitem">
-        <span class="mob-action-dot"></span>♪ Sound
+        <span class="mob-action-dot"></span><span class="mob-label">♪ Sound</span>
       </button>
     </div>
   </div>
@@ -2175,12 +2175,12 @@ function updateSonicAgents() {
     if (pauseBtn) {
       pauseBtn.classList.toggle('active', paused);
       pauseBtn.querySelector('.mob-action-dot').style.background = paused ? 'var(--charcoal)' : 'var(--mid-gray)';
-      pauseBtn.childNodes[1].textContent = paused ? '▶ Play' : '⏸ Pause';
+      pauseBtn.querySelector('.mob-label').textContent = paused ? '▶ Play' : '⏸ Pause';
     }
     if (soundBtn) {
       soundBtn.classList.toggle('sound-active', audioEnabled);
       soundBtn.querySelector('.mob-action-dot').style.background = audioEnabled ? '#1e7a4a' : 'var(--mid-gray)';
-      soundBtn.childNodes[1].textContent = audioEnabled ? '♪ Sound On' : '♪ Sound';
+      soundBtn.querySelector('.mob-label').textContent = audioEnabled ? '♪ Sound On' : '♪ Sound';
     }
   }
 
